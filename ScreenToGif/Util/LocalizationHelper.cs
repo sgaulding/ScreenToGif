@@ -23,6 +23,8 @@ namespace ScreenToGif.Util
     /// </summary>
     public static class LocalizationHelper
     {
+        public static string CurrentCulture { get; set; }
+        
         public static void SelectCulture(string culture)
         {
             #region Validation
@@ -78,6 +80,7 @@ namespace ScreenToGif.Util
             //Then this language will be our current string table.
             Application.Current.Resources.MergedDictionaries.Remove(requestedResource);
             Application.Current.Resources.MergedDictionaries.Add(requestedResource);
+            CurrentCulture = culture;
 
             //Inform the threads of the new culture.
             Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
@@ -85,7 +88,7 @@ namespace ScreenToGif.Util
 
             #region English Fallback of the Current Language
 
-            //Only non-English resources need a fallback, because the English resource is evergreen. TODO
+            //Only non-English resources need a fallback, because the English resource is evergreen.
             if (culture.StartsWith("en"))
                 return;
 
@@ -128,7 +131,10 @@ namespace ScreenToGif.Util
         {
             try
             {
-                var folder = Path.Combine(UserSettings.All.TemporaryFolder, "ScreenToGif", "Localization");
+                if (string.IsNullOrWhiteSpace(UserSettings.All.TemporaryFolderResolved))
+                    return;
+
+                var folder = Path.Combine(UserSettings.All.TemporaryFolderResolved, "ScreenToGif", "Localization");
                 var file = Path.Combine(folder, $"StringResources.{culture}.new.xaml");
 
                 Directory.CreateDirectory(folder);
@@ -349,14 +355,42 @@ namespace ScreenToGif.Util
                 if (!toUp && selectedIndex > Application.Current.Resources.MergedDictionaries.Count - 1)
                     return false;
 
-                //Recover selected dictionary.
+                //Recover the selected dictionary.
                 var dictionaryAux = Application.Current.Resources.MergedDictionaries[selectedIndex];
 
                 //Remove from the current list.
                 Application.Current.Resources.MergedDictionaries.Remove(Application.Current.Resources.MergedDictionaries[selectedIndex]);
 
-                //Insert at the upper position.
-                Application.Current.Resources.MergedDictionaries.Insert(toUp ? selectedIndex - 1 : selectedIndex + 1, dictionaryAux);
+                //Detect the index of the next localization.
+                var newIndex = -1;
+
+                if (toUp)
+                {
+                    //Search for the index of the previous localization resource.
+                    for (var i = selectedIndex - 1; i >= 0; i--)
+                    {
+                        if (Application.Current.Resources.MergedDictionaries[i].Source?.OriginalString?.Contains("StringResources") == true)
+                        {
+                            newIndex = i;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    //Search for the index of the next localization resource.
+                    for (var i = selectedIndex; i < Application.Current.Resources.MergedDictionaries.Count; i++)
+                    {
+                        if (Application.Current.Resources.MergedDictionaries[i].Source?.OriginalString?.Contains("StringResources") == true)
+                        {
+                            newIndex = i + 1;
+                            break;
+                        }
+                    }
+                }
+                
+                //Insert at the new position.
+                Application.Current.Resources.MergedDictionaries.Insert(newIndex, dictionaryAux);
 
                 return true;
             }
@@ -394,7 +428,8 @@ namespace ScreenToGif.Util
                 if (selectedIndex == -1 || selectedIndex > Application.Current.Resources.MergedDictionaries.Count - 1)
                     return false;
 
-                if (Application.Current.Resources.MergedDictionaries[selectedIndex].Source.OriginalString.Contains("StringResources.xaml"))
+                //Don't allow the user to delete resources that are not localizations.
+                if (Application.Current.Resources.MergedDictionaries[selectedIndex].Source?.OriginalString?.Contains("StringResources") != true)
                     return false;
 
                 //Remove from the current list.
@@ -459,6 +494,18 @@ namespace ScreenToGif.Util
         public static string GetWithFormat(string key, string defaultValue, params object[] values)
         {
             return string.Format(Thread.CurrentThread.CurrentUICulture, Application.Current.TryFindResource(key) as string ?? defaultValue, values);
+        }
+
+        /// <summary>
+        /// Gets a resource as string.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="key">The key of the string resource.</param>
+        /// <param name="values">The possible values that composite the key name.</param>
+        /// <returns>A string resource, usually a localized string.</returns>
+        public static string GetWithIndex(int index, string key, params string[] values)
+        {
+            return Application.Current.TryFindResource(key + values[index]) as string;
         }
     }
 }

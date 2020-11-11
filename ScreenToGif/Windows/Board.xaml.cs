@@ -27,15 +27,6 @@ namespace ScreenToGif.Windows
 
         #region Variables
 
-        #region Counters
-
-        /// <summary>
-        /// The delay of each frame took as snapshot.
-        /// </summary>
-        private int? _snapDelay = null;
-
-        #endregion
-
         /// <summary>
         /// The DPI of the current screen.
         /// </summary>
@@ -53,23 +44,11 @@ namespace ScreenToGif.Windows
 
         #region Inicialization
 
-        public Board(bool hideBackButton = true)
+        public Board()
         {
             InitializeComponent();
 
-            BackVisibility = hideBackButton ? Visibility.Collapsed : Visibility.Visible;
-
-            //Load
             _capture.Tick += Normal_Elapsed;
-
-            #region Temporary folder
-
-            if (string.IsNullOrWhiteSpace(UserSettings.All.TemporaryFolder))
-                UserSettings.All.TemporaryFolder = Path.GetTempPath();
-
-            //Project = new ProjectInfo().CreateProjectFolder();
-
-            #endregion
         }
 
         private void Board_OnLoaded(object sender, RoutedEventArgs e)
@@ -120,6 +99,9 @@ namespace ScreenToGif.Windows
             try
             {
                 #region Remove all the files
+
+                if (Project == null)
+                    return;
 
                 foreach (var frame in Project.Frames)
                 {
@@ -178,7 +160,7 @@ namespace ScreenToGif.Windows
                 //if (!Settings.Default.Snapshot)
                 //{
                 //Only display the Record text when not in snapshot mode. 
-                Title = FindResource("Board.Title") as string;
+                Title = LocalizationHelper.Get("S.Board.Title");
                 //}
                 //else
                 //{
@@ -208,7 +190,6 @@ namespace ScreenToGif.Windows
                     #region To Record
 
                     _capture = new Timer { Interval = 1000 / FpsNumericUpDown.Value };
-                    _snapDelay = null;
 
                     Project?.Clear();
                     Project = new ProjectInfo().CreateProjectFolder(ProjectByType.BoardRecorder);
@@ -261,7 +242,7 @@ namespace ScreenToGif.Windows
                     #region To Pause
 
                     Stage = Stage.Paused;
-                    Title = FindResource("Recorder.Paused").ToString();
+                    Title = LocalizationHelper.Get("S.Recorder.Paused");
 
                     AutoFitButtons();
 
@@ -277,7 +258,7 @@ namespace ScreenToGif.Windows
                     #region To Record Again
 
                     Stage = Stage.Recording;
-                    Title = FindResource("Board.Title") as string;
+                    Title = LocalizationHelper.Get("S.Board.Title");
 
                     AutoFitButtons();
 
@@ -291,9 +272,7 @@ namespace ScreenToGif.Windows
                 case Stage.Snapping:
 
                     #region Take Screenshot (All possibles types)
-
-                    _snapDelay = UserSettings.All.SnapshotDefaultDelay;
-
+                    
                     Normal_Elapsed(null, null);
 
                     break;
@@ -332,7 +311,7 @@ namespace ScreenToGif.Windows
                     IsRecording = false;
                     Topmost = true;
 
-                    Title = FindResource("Board.Title") as string + " ■";
+                    Title = LocalizationHelper.Get("S.Board.Title") + " ■";
 
                     AutoFitButtons();
 
@@ -341,12 +320,12 @@ namespace ScreenToGif.Windows
             }
             catch (NullReferenceException nll)
             {
-                ErrorDialog.Ok(FindResource("Board.Title") as string, "Error while stopping", nll.Message, nll);
+                ErrorDialog.Ok(LocalizationHelper.Get("S.Board.Title"), "Error while stopping", nll.Message, nll);
                 LogWriter.Log(nll, "NullPointer on the Stop function");
             }
             catch (Exception ex)
             {
-                ErrorDialog.Ok(FindResource("Board.Title") as string, "Error while stopping", ex.Message, ex);
+                ErrorDialog.Ok(LocalizationHelper.Get("S.Board.Title"), "Error while stopping", ex.Message, ex);
                 LogWriter.Log(ex, "Error on the Stop function");
             }
         }
@@ -376,13 +355,13 @@ namespace ScreenToGif.Windows
 
         private void Normal_Elapsed(object sender, EventArgs e)
         {
-            string fileName = $"{Project.FullPath}{FrameCount}.png";
+            var fileName = $"{Project.FullPath}{FrameCount}.png";
 
             //TODO: GetRender fails to create useful image when the control has decimals values as size.
 
             var render = MainBorder.GetRender(_dpi); //TODO: Too heavy! Maybe just save the strokes? like layers?
 
-            Project.Frames.Add(new FrameInfo(fileName, FrameRate.GetMilliseconds(_snapDelay)));
+            Project.Frames.Add(new FrameInfo(fileName, FrameRate.GetMilliseconds()));
 
             ThreadPool.QueueUserWorkItem(delegate { AddFrames(fileName, render); });
 
@@ -404,6 +383,10 @@ namespace ScreenToGif.Windows
 
         private void DiscardButton_Click(object sender, RoutedEventArgs e)
         {
+            if (UserSettings.All.NotifyRecordingDiscard && !Dialog.Ask(LocalizationHelper.Get("S.Recorder.Discard.Title"),
+                LocalizationHelper.Get("S.Recorder.Discard.Instruction"), LocalizationHelper.Get("S.Recorder.Discard.Message"), false))
+                return;
+
             _capture.Stop();
             FrameRate.Stop();
             FrameCount = 0;
@@ -508,7 +491,7 @@ namespace ScreenToGif.Windows
             //Save Settings
             UserSettings.Save();
 
-            if (Stage != (int)Stage.Stopped)
+            if (Stage != Stage.Stopped)
             {
                 _capture.Stop();
                 _capture.Dispose();

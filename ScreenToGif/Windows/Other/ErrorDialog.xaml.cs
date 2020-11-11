@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace ScreenToGif.Windows.Other
 {
@@ -16,23 +17,23 @@ namespace ScreenToGif.Windows.Other
 
         #region Methods
 
-        private Canvas GetIcon(Icons icon)
+        private Brush GetIcon(Icons icon)
         {
             switch (icon)
             {
                 case Icons.Error:
-                    return (Canvas)FindResource("Vector.Error");
+                    return (Brush)FindResource("Vector.Cancel.Round");
                 case Icons.Info:
-                    return (Canvas)FindResource("Vector.Info");
+                    return (Brush)FindResource("Vector.Info");
                 case Icons.Success:
-                    return (Canvas)FindResource("Vector.Success");
+                    return (Brush)FindResource("Vector.Ok.Round");
                 case Icons.Warning:
-                    return (Canvas)FindResource("Vector.Warning");
+                    return (Brush)FindResource("Vector.Warning");
                 case Icons.Question:
-                    return (Canvas)FindResource("Vector.Question");
+                    return (Brush)FindResource("Vector.Question");
 
                 default:
-                    return (Canvas)FindResource("Vector.Info");
+                    return (Brush)FindResource("Vector.Info");
             }
         }
 
@@ -41,11 +42,11 @@ namespace ScreenToGif.Windows.Other
             CancelButton.Visibility = Visibility.Collapsed;
             YesButton.Visibility = Visibility.Collapsed;
             NoButton.Visibility = Visibility.Collapsed;
+            DetailsButton.Visibility = Exception != null ? Visibility.Visible : Visibility.Collapsed;
 
             OkButton.Focus();
 
-            IconViewbox.Child = GetIcon(icon);
-
+            IconBorder.Background = GetIcon(icon);
             InstructionLabel.Content = instruction;
             DetailsRun.Text = observation;
             Title = title;
@@ -55,11 +56,11 @@ namespace ScreenToGif.Windows.Other
         {
             YesButton.Visibility = Visibility.Collapsed;
             NoButton.Visibility = Visibility.Collapsed;
+            DetailsButton.Visibility = Exception != null ? Visibility.Visible : Visibility.Collapsed;
 
             CancelButton.Focus();
 
-            IconViewbox.Child = GetIcon(icon);
-
+            IconBorder.Background = GetIcon(icon);
             InstructionLabel.Content = instruction;
             DetailsRun.Text = observation;
             Title = title;
@@ -69,11 +70,11 @@ namespace ScreenToGif.Windows.Other
         {
             CancelButton.Visibility = Visibility.Collapsed;
             OkButton.Visibility = Visibility.Collapsed;
+            DetailsButton.Visibility = Exception != null ? Visibility.Visible : Visibility.Collapsed;
 
             NoButton.Focus();
 
-            IconViewbox.Child = GetIcon(icon);
-
+            IconBorder.Background = GetIcon(icon);
             InstructionLabel.Content = instruction;
             DetailsRun.Text = observation;
             Title = title;

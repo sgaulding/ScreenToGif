@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -19,7 +20,7 @@ namespace ScreenToGif.Controls
         /// <summary>
         /// Represents the current icon data.
         /// </summary>
-        private Native.NotifyIconData _iconData;
+        private Util.Native.NotifyIconData _iconData;
 
         /// <summary>
         /// Receives messages from the taskbar icon.
@@ -56,7 +57,13 @@ namespace ScreenToGif.Controls
 
         public static readonly DependencyProperty NotifyToolTipElementProperty = NotifyToolTipElementPropertyKey.DependencyProperty;
 
-        private static readonly DependencyProperty DoubleClickCommandProperty = DependencyProperty.Register("DoubleClickCommand", typeof(ICommand), typeof(NotifyIcon),
+        private static readonly DependencyProperty LeftClickCommandProperty = DependencyProperty.Register("LeftClickCommand", typeof(ICommand), typeof(NotifyIcon),
+            new FrameworkPropertyMetadata(null));
+
+        private static readonly DependencyProperty DoubleLeftClickCommandProperty = DependencyProperty.Register("DoubleLeftClickCommand", typeof(ICommand), typeof(NotifyIcon),
+            new FrameworkPropertyMetadata(null));
+
+        private static readonly DependencyProperty MiddleClickCommandProperty = DependencyProperty.Register("MiddleClickCommand", typeof(ICommand), typeof(NotifyIcon),
             new FrameworkPropertyMetadata(null));
 
         public static readonly RoutedEvent TrayMouseMoveEvent = EventManager.RegisterRoutedEvent("TrayMouseMove",
@@ -116,7 +123,7 @@ namespace ScreenToGif.Controls
                 _icon = value;
                 _iconData.IconHandle = value == null ? IntPtr.Zero : _icon.Handle;
 
-                VisualHelper.WriteIconData(ref _iconData, Native.NotifyCommand.Modify, Native.IconDataMembers.Icon);
+                VisualHelper.WriteIconData(ref _iconData, Util.Native.NotifyCommand.Modify, Util.Native.IconDataMembers.Icon);
             }
         }
 
@@ -141,10 +148,22 @@ namespace ScreenToGif.Controls
         [Bindable(true)]
         public ToolTip NotifyToolTipElement => (ToolTip)GetValue(NotifyToolTipElementProperty);
 
-        public ICommand DoubleClickCommand
+        public ICommand LeftClickCommand
         {
-            get => (ICommand)GetValue(DoubleClickCommandProperty);
-            set => SetValue(DoubleClickCommandProperty, value);
+            get => (ICommand)GetValue(LeftClickCommandProperty);
+            set => SetValue(LeftClickCommandProperty, value);
+        }
+
+        public ICommand DoubleLeftClickCommand
+        {
+            get => (ICommand)GetValue(DoubleLeftClickCommandProperty);
+            set => SetValue(DoubleLeftClickCommandProperty, value);
+        }
+                
+        public ICommand MiddleClickCommand
+        {
+            get => (ICommand)GetValue(MiddleClickCommandProperty);
+            set => SetValue(MiddleClickCommandProperty, value);
         }
 
         public event RoutedEventHandler TrayMouseMove
@@ -273,7 +292,7 @@ namespace ScreenToGif.Controls
             var owner = d as NotifyIcon;
             var value = (ImageSource)e.NewValue;
 
-            if (owner != null && !VisualHelper.IsInDesignMode())
+            if (owner != null && value != null && !VisualHelper.IsInDesignMode())
                 owner.Icon = value.ToIcon();
         }
 
@@ -316,7 +335,7 @@ namespace ScreenToGif.Controls
         {
             _messageSink = new WindowMessageSink();
 
-            _iconData = Native.NotifyIconData.CreateDefault(_messageSink.MessageWindowHandle);
+            _iconData = Util.Native.NotifyIconData.CreateDefault(_messageSink.MessageWindowHandle);
 
             _messageSink.MouseEventReceived += OnMouseEvent;
             _messageSink.TaskbarCreated += OnTaskbarCreated;
@@ -336,13 +355,13 @@ namespace ScreenToGif.Controls
                     return;
 
                 //Initial configuration.
-                var status = VisualHelper.WriteIconData(ref _iconData, Native.NotifyCommand.Add, Native.IconDataMembers.Message | Native.IconDataMembers.Icon | Native.IconDataMembers.Tip);
+                var status = VisualHelper.WriteIconData(ref _iconData, Util.Native.NotifyCommand.Add, Util.Native.IconDataMembers.Message | Util.Native.IconDataMembers.Icon | Util.Native.IconDataMembers.Tip);
 
                 if (!status)
                     return;
 
-                _iconData.VersionOrTimeout = (uint)Native.NotifyIconVersion.Vista;
-                status = Native.Shell_NotifyIcon(Native.NotifyCommand.SetVersion, ref _iconData);
+                _iconData.VersionOrTimeout = (uint)Util.Native.NotifyIconVersion.Vista;
+                status = Util.Native.Shell_NotifyIcon(Util.Native.NotifyCommand.SetVersion, ref _iconData);
 
                 if (!status)
                     return;
@@ -358,27 +377,26 @@ namespace ScreenToGif.Controls
                 if (!IsTaskbarIconCreated)
                     return;
 
-                VisualHelper.WriteIconData(ref _iconData, Native.NotifyCommand.Delete, Native.IconDataMembers.Message);
+                VisualHelper.WriteIconData(ref _iconData, Util.Native.NotifyCommand.Delete, Util.Native.IconDataMembers.Message);
                 IsTaskbarIconCreated = false;
             }
         }
 
-        public Native.PointW GetDeviceCoordinates(Native.PointW point)
+        public Util.Native.PointW GetDeviceCoordinates(Util.Native.PointW point)
         {
             var dpi = Other.ScaleOfSystem();
-            return new Native.PointW { X = (int)(point.X / dpi), Y = (int)(point.Y / dpi) };
+            return new Util.Native.PointW { X = (int)(point.X / dpi), Y = (int)(point.Y / dpi) };
         }
 
-        private void ShowContextMenu(Native.PointW cursorPosition)
+        private void ShowContextMenu(Util.Native.PointW cursorPosition)
         {
             if (IsDisposed)
                 return;
 
             var args = new RoutedEventArgs { RoutedEvent = PreviewTrayContextMenuOpenEvent };
             RaiseEvent(args);
-            if (args.Handled) return;
-
-            if (ContextMenu == null)
+            
+            if (args.Handled || ContextMenu == null)
                 return;
 
             ContextMenu.Placement = PlacementMode.AbsolutePoint;
@@ -390,7 +408,7 @@ namespace ScreenToGif.Controls
             var handle = ((HwndSource)PresentationSource.FromVisual(ContextMenu))?.Handle ?? _messageSink.MessageWindowHandle;
 
             //This makes sure that the context menu can close if lost focus.
-            Native.SetForegroundWindow(handle);
+            Util.Native.SetForegroundWindow(handle);
 
             RaiseEvent(new RoutedEventArgs { RoutedEvent = TrayContextMenuOpenEvent });
         }
@@ -440,7 +458,30 @@ namespace ScreenToGif.Controls
             if (string.IsNullOrEmpty(_iconData.ToolTipText) && NotifyToolTipElement != null)
                 _iconData.ToolTipText = "ToolTip";
 
-            VisualHelper.WriteIconData(ref _iconData, Native.NotifyCommand.Modify, Native.IconDataMembers.Tip);
+            VisualHelper.WriteIconData(ref _iconData, Util.Native.NotifyCommand.Modify, Util.Native.IconDataMembers.Tip);
+        }
+
+        public void RefreshVisual()
+        {
+            if (ContextMenu == null)
+                return;
+
+            //For some reason, the context menu of the systray icon is not updating its style.
+            NotifyToolTipElement.Background = ContextMenu.Background = TryFindResource("Element.Background") as SolidColorBrush;
+            
+            foreach (var menuItem in ContextMenu.Items.OfType<ExtendedMenuItem>())
+            {
+                menuItem.Foreground = TryFindResource("Element.Foreground.Medium") as SolidColorBrush;
+
+                if (menuItem.Name == "ExitButton")
+                    menuItem.Icon = TryFindResource("Vector.Close") as System.Windows.Media.Brush;
+            }
+            
+            if (NotifyToolTipElement is ToolTip tooltip)
+            {
+                tooltip.SetValue(TextBlock.ForegroundProperty, TryFindResource("Element.Foreground.Medium") as SolidColorBrush);
+                tooltip.InvalidateVisual();
+            }
         }
 
         #endregion
@@ -476,23 +517,25 @@ namespace ScreenToGif.Controls
                     break;
                 case MouseEventType.IconLeftMouseUp:
                     RaiseEvent(new RoutedEventArgs { RoutedEvent = TrayLeftMouseUpEvent });
+                    LeftClickCommand?.Execute(this);
                     break;
                 case MouseEventType.IconRightMouseUp:
                     RaiseEvent(new RoutedEventArgs { RoutedEvent = TrayRightMouseUpEvent });
                     break;
                 case MouseEventType.IconMiddleMouseUp:
                     RaiseEvent(new RoutedEventArgs { RoutedEvent = TrayMiddleMouseUpEvent });
+                    MiddleClickCommand?.Execute(this);
                     break;
-                case MouseEventType.IconDoubleClick:
+                case MouseEventType.IconLeftDoubleClick:
                     RaiseEvent(new RoutedEventArgs { RoutedEvent = TrayMouseDoubleClickEvent });
-                    DoubleClickCommand?.Execute(this);
+                    DoubleLeftClickCommand?.Execute(this);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), "Missing handler for mouse event flag: " + type);
             }
 
-            var cursorPosition = new Native.PointW();
-            Native.GetPhysicalCursorPos(ref cursorPosition);
+            var cursorPosition = new Util.Native.PointW();
+            Util.Native.GetPhysicalCursorPos(ref cursorPosition);
 
             cursorPosition = GetDeviceCoordinates(cursorPosition);
 
@@ -508,7 +551,8 @@ namespace ScreenToGif.Controls
 
         private void OnToolTipChange(bool visible)
         {
-            if (NotifyToolTipElement == null) return;
+            if (NotifyToolTipElement == null) 
+                return;
 
             if (visible)
             {
@@ -529,7 +573,9 @@ namespace ScreenToGif.Controls
             {
                 var args = new RoutedEventArgs { RoutedEvent = PreviewToolTipCloseEvent };
                 RaiseEvent(args);
-                if (args.Handled) return;
+
+                if (args.Handled) 
+                    return;
 
                 NotifyToolTip?.RaiseEvent(new RoutedEventArgs { RoutedEvent = ToolTipCloseEvent });
 

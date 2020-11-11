@@ -9,6 +9,7 @@ namespace ScreenToGif.Model
         #region Variables
 
         private bool _ignoreNonModifiers;
+        private bool _ignoreInjected;
         private bool _earlier;
         private double _earlierBy;
         private string _separator;
@@ -22,10 +23,11 @@ namespace ScreenToGif.Model
         private double _outlineThickness;
         private Color _outlineColor;
         private Color _backgroundColor;
-        private VerticalAlignment _verticalAligment;
-        private HorizontalAlignment _horizontalAligment;
+        private VerticalAlignment _verticalAlignment;
+        private HorizontalAlignment _horizontalAlignment;
         private double _margin;
         private double _padding;
+        private double _minHeight;
 
         #endregion
 
@@ -38,6 +40,12 @@ namespace ScreenToGif.Model
         {
             get => _ignoreNonModifiers;
             set => SetProperty(ref _ignoreNonModifiers, value);
+        }
+
+        public bool KeyStrokesIgnoreInjected
+        {
+            get => _ignoreInjected;
+            set => SetProperty(ref _ignoreInjected, value);
         }
 
         public bool KeyStrokesEarlier
@@ -118,16 +126,16 @@ namespace ScreenToGif.Model
             set => SetProperty(ref _backgroundColor, value);
         }
 
-        public VerticalAlignment KeyStrokesVerticalAligment
+        public VerticalAlignment KeyStrokesVerticalAlignment
         {
-            get => _verticalAligment;
-            set => SetProperty(ref _verticalAligment, value);
+            get => _verticalAlignment;
+            set => SetProperty(ref _verticalAlignment, value);
         }
 
-        public HorizontalAlignment KeyStrokesHorizontalAligment
+        public HorizontalAlignment KeyStrokesHorizontalAlignment
         {
-            get => _horizontalAligment;
-            set => SetProperty(ref _horizontalAligment, value);
+            get => _horizontalAlignment;
+            set => SetProperty(ref _horizontalAlignment, value);
         }
 
         public double KeyStrokesMargin
@@ -142,11 +150,35 @@ namespace ScreenToGif.Model
             set => SetProperty(ref _padding, value);
         }
 
+        public double KeyStrokesMinHeight
+        {
+            get => _minHeight;
+            set => SetProperty(ref _minHeight, value);
+        }
+
+        #region Obsolete (Typo in name)
+
+        public VerticalAlignment KeyStrokesVerticalAligment
+        {
+            get => _verticalAlignment;
+            set => SetProperty(ref _verticalAlignment, value);
+        }
+
+        public HorizontalAlignment KeyStrokesHorizontalAligment
+        {
+            get => _horizontalAlignment;
+            set => SetProperty(ref _horizontalAlignment, value);
+        }
+
+        #endregion
+
         public override string ToString()
         {
-            return $"{(KeyStrokesIgnoreNonModifiers ? LocalizationHelper.Get("KeyStrokes.IgnoreModifiers") : "")}, " +
-                   $"{(KeyStrokesExtended ? LocalizationHelper.Get("KeyStrokes.Extend") : "")}, " +
-                   $"{(KeyStrokesEarlier ? LocalizationHelper.Get("KeyStrokes.Earlier") : "")}";
+            return $"{LocalizationHelper.Get("S.Caption.Size")} {KeyStrokesFontSize}, " +
+                   $"{LocalizationHelper.Get("S.Caption.Color")} #{KeyStrokesFontColor.A:X2}{KeyStrokesFontColor.R:X2}{KeyStrokesFontColor.G:X2}{KeyStrokesFontColor.B:X2}, " +
+                   $"{LocalizationHelper.Get("S.Background")} #{KeyStrokesBackgroundColor.A:X2}{KeyStrokesBackgroundColor.R:X2}{KeyStrokesBackgroundColor.G:X2}{KeyStrokesBackgroundColor.B:X2}, " +
+                   $"{LocalizationHelper.Get("S.Margin")} {KeyStrokesMargin}, " +
+                   $"{LocalizationHelper.Get("S.Padding")} {KeyStrokesPadding}";
         }
 
         public static KeyStrokesModel Default()
@@ -154,6 +186,7 @@ namespace ScreenToGif.Model
             return new KeyStrokesModel
             {
                 KeyStrokesIgnoreNonModifiers = true,
+                KeyStrokesIgnoreInjected = false,
                 KeyStrokesEarlier = false,
                 KeyStrokesEarlierBy = 500,
                 KeyStrokesExtended = true,
@@ -166,11 +199,12 @@ namespace ScreenToGif.Model
                 KeyStrokesFontWeight = FontWeights.Bold,
                 KeyStrokesOutlineThickness = 0,
                 KeyStrokesOutlineColor = Color.FromArgb(255, 255, 255, 255),
-                KeyStrokesBackgroundColor = Color.FromArgb(255, 255, 255, 255),
-                KeyStrokesHorizontalAligment = HorizontalAlignment.Center,
-                KeyStrokesVerticalAligment = VerticalAlignment.Bottom,
+                KeyStrokesBackgroundColor = Color.FromArgb(255, 0, 0, 0),
+                KeyStrokesHorizontalAlignment = HorizontalAlignment.Center,
+                KeyStrokesVerticalAlignment = VerticalAlignment.Bottom,
                 KeyStrokesMargin = 0,
-                KeyStrokesPadding = 10
+                KeyStrokesPadding = 5,
+                KeyStrokesMinHeight = 42,
             };
         }
 
@@ -179,6 +213,7 @@ namespace ScreenToGif.Model
             return new KeyStrokesModel
             {
                 KeyStrokesIgnoreNonModifiers = UserSettings.All.KeyStrokesIgnoreNonModifiers,
+                KeyStrokesIgnoreInjected = UserSettings.All.KeyStrokesIgnoreInjected,
                 KeyStrokesEarlier = UserSettings.All.KeyStrokesEarlier,
                 KeyStrokesEarlierBy = UserSettings.All.KeyStrokesEarlierBy,
                 KeyStrokesExtended = UserSettings.All.KeyStrokesExtended,
@@ -192,10 +227,11 @@ namespace ScreenToGif.Model
                 KeyStrokesOutlineThickness = UserSettings.All.KeyStrokesOutlineThickness,
                 KeyStrokesOutlineColor = UserSettings.All.KeyStrokesOutlineColor,
                 KeyStrokesBackgroundColor = UserSettings.All.KeyStrokesBackgroundColor,
-                KeyStrokesHorizontalAligment = UserSettings.All.KeyStrokesHorizontalAligment,
-                KeyStrokesVerticalAligment = UserSettings.All.KeyStrokesVerticalAligment,
+                KeyStrokesHorizontalAlignment = UserSettings.All.KeyStrokesHorizontalAligment,
+                KeyStrokesVerticalAlignment = UserSettings.All.KeyStrokesVerticalAligment,
                 KeyStrokesMargin = UserSettings.All.KeyStrokesMargin,
-                KeyStrokesPadding = UserSettings.All.KeyStrokesPadding
+                KeyStrokesPadding = UserSettings.All.KeyStrokesPadding,
+                KeyStrokesMinHeight = UserSettings.All.KeyStrokesMinHeight,
             };
         }
     }

@@ -1,5 +1,33 @@
-﻿namespace ScreenToGif.Util
+﻿using System;
+
+namespace ScreenToGif.Util
 {
+    /// <summary>
+    /// Determines the app's theme.
+    /// </summary>
+    public enum AppTheme
+    {
+        Light,
+        Medium,
+        Dark,
+        VeryDark,
+    }
+
+    /// <summary>
+    /// The direction in which the window should be resized.
+    /// </summary>
+    public enum ResizeDirection
+    {
+        Left = 1,
+        Right = 2,
+        Top = 3,
+        TopLeft = 4,
+        TopRight = 5,
+        Bottom = 6,
+        BottomLeft = 7,
+        BottomRight = 8
+    }
+
     /// <summary>
     /// Determines how the past bahaves.
     /// </summary>
@@ -93,35 +121,37 @@
         /// </summary>
         IncreaseDecreaseDelay = 7,
 
+        ScaleDelay = 8,
+
         /// <summary>
         /// Fade Transition Panel.
         /// </summary>
-        Fade = 8,
+        Fade = 9,
 
         /// <summary>
         /// Slide Transition Panel.
         /// </summary>
-        Slide = 9,
+        Slide = 10,
 
         /// <summary>
         /// Reduce Frame Count Panel.
         /// </summary>
-        ReduceFrames = 10,
+        ReduceFrames = 11,
 
         /// <summary>
         /// Load Recent Panel.
         /// </summary>
-        LoadRecent = 11,
+        LoadRecent = 12,
 
         /// <summary>
         /// Remove Duplicates Panel.
         /// </summary>
-        RemoveDuplicates = 12,
+        RemoveDuplicates = 13,
 
         /// <summary>
         /// Mouse Clicks Panel.
         /// </summary>
-        MouseClicks = 13,
+        MouseClicks = 14,
 
         /// <summary>
         /// Crop Panel.
@@ -149,34 +179,44 @@
         FreeDrawing = -5,
 
         /// <summary>
+        /// Shapes Panel.
+        /// </summary>
+        Shapes = -6,
+
+        /// <summary>
         /// Watermark Panel.
         /// </summary>
-        Watermark = -6,
+        Watermark = -7,
 
         /// <summary>
         /// Border Panel.
         /// </summary>
-        Border = -7,
+        Border = -8,
 
         /// <summary>
         /// Cinemagraph Panel.
         /// </summary>
-        Cinemagraph = -8,
+        Cinemagraph = -9,
 
         /// <summary>
         /// Progress Panel.
         /// </summary>
-        Progress = -9,
+        Progress = -10,
 
         /// <summary>
         /// Key Strokes Panel.
         /// </summary>
-        KeyStrokes = -10,
+        KeyStrokes = -11,
 
         /// <summary>
         /// Obfuscate Panel.
         /// </summary>
-        Obfuscate = -11,
+        Obfuscate = -12,
+
+        /// <summary>
+        /// Shadow Panel.
+        /// </summary>
+        Shadow = -13,
     }
 
     /// <summary>
@@ -209,46 +249,53 @@
     /// <summary>
     /// Stage status of the recording process.
     /// </summary>
+    [Flags]
     public enum Stage
     {
         /// <summary>
         /// Recording stopped, but selecting the region to record.
         /// </summary>
-        SelectingRegion = -1,
+        [Obsolete]
+        SelectingRegion = 0, //Removed later.
+
+
 
         /// <summary>
         /// Recording stopped.
         /// </summary>
-        Stopped = 0,
+        Stopped = 1, //1 << 0, 0b_000001
 
         /// <summary>
         /// Recording active.
         /// </summary>
-        Recording = 1,
+        Recording = 2, //1 << 1, 0b_000010
 
         /// <summary>
         /// Recording paused.
         /// </summary>
-        Paused = 2,
+        Paused = 4, //1 << 2, 0b_000100
 
         /// <summary>
         /// Pre start countdown active.
         /// </summary>
-        PreStarting = 3,
-
-        /// <summary>
-        /// Single shot mode.
-        /// </summary>
-        Snapping = 4,
+        PreStarting = 8, //1 << 3, 0b_001000
 
         /// <summary>
         /// The recording is being discarded.
         /// </summary>
-        Discarding = 5
+        Discarding = 16, //1 << 4, 0b_010000
+
+
+
+        /// <summary>
+        /// Single shot mode.
+        /// </summary>
+        [Obsolete]
+        Snapping = 32, //1 << 5, 0b_100000 //Remove later.
     }
 
     /// <summary>
-    /// EncoderListBox Item Status.
+    /// Encoding status.
     /// </summary>
     public enum Status
     {
@@ -316,7 +363,8 @@
     public enum DelayChangeType
     {
         Override,
-        IncreaseDecrease
+        IncreaseDecrease,
+        Scale
     }
 
     /// <summary>
@@ -324,7 +372,6 @@
     /// </summary>
     public enum GifEncoderType
     {
-        Legacy,
         ScreenToGif,
         PaintNet,
         FFmpeg,
@@ -332,14 +379,25 @@
     }
 
     /// <summary>
+    /// Type of the apng encoder.
+    /// </summary>
+    public enum ApngEncoderType
+    {
+        ScreenToGif,
+        FFmpeg,
+    }
+
+    /// <summary>
     /// Type of color quantization methods of the gif encoder.
     /// </summary>
     public enum ColorQuantizationType
     {
-        Ordered,
-        NeuQuant,
-        Octree,
-        Grayscale,
+        Neural = 0,
+        Octree = 1,
+        MedianCut = 2,
+        Grayscale = 3,
+        MostUsed = 4,
+        Palette = 5,
     }
 
     /// <summary>
@@ -433,6 +491,16 @@
     }
 
     /// <summary>
+    /// Specifies the type of frame delay adjustment for the 'Reduce Framerate'.
+    /// </summary>
+    public enum ReduceDelayType
+    {
+        DontAdjust = 0,
+        Previous = 1,
+        Evenly = 2
+    }
+
+    /// <summary>
     /// Specifies the type of frame removal.
     /// </summary>
     public enum DuplicatesRemovalType
@@ -463,7 +531,7 @@
         IconLeftMouseUp,
         IconMiddleMouseDown,
         IconMiddleMouseUp,
-        IconDoubleClick
+        IconLeftDoubleClick
     }
 
 
@@ -516,8 +584,8 @@
         None = 0,
         ImgurAnonymous = 1,
         Imgur = 2,
-        GyfcatAnonymous = 3,
-        Gyfcat = 4,
+        GfycatAnonymous = 3,
+        Gfycat = 4,
         Yandex = 5,
     }
 
@@ -540,5 +608,74 @@
         WebcamRecorder = 2,
         BoardRecorder = 3,
         Editor = 4,
+    }
+
+    /// <summary>
+    /// The types of drawings.
+    /// </summary>
+    public enum DrawingModeType
+    {
+        None = 0,
+        Ink,
+        Select,
+        EraseByPoint,
+        EraseByObject,
+        Rectangle,
+        Circle,
+        Triangle,
+        Arrow,
+        Baloon,
+    }
+
+    /// <summary>
+    /// Delay update type.
+    /// </summary>
+    public enum DelayUpdateType
+    {
+        Override = 0,
+        IncreaseDecrease = 1,
+        Scale = 2,
+    }
+
+    /// <summary>
+    /// Type of capture frequency mode for the screen recorder.
+    /// </summary>
+    public enum CaptureFrequency
+    {
+        Manual,
+        Interaction,
+        PerSecond,
+        PerMinute,
+        PerHour
+    }
+
+    public enum ObfuscationMode
+    {
+        Pixelation,
+        Blur,
+        Darken,
+        Lighten
+    }
+
+    /// <summary>
+    /// Scaling quality options for resizing
+    /// This enum is a subset of <seealso cref="System.Windows.Media.BitmapScalingMode"/>.
+    /// It is used to expose this enum to the Editor and choose which options are availabe
+    /// </summary>
+    public enum ScalingMethod
+    {
+        Fant = System.Windows.Media.BitmapScalingMode.Fant,
+        Linear = System.Windows.Media.BitmapScalingMode.Linear,
+        NearestNeighbor = System.Windows.Media.BitmapScalingMode.NearestNeighbor
+    }
+
+    /// <summary>
+    /// The type of capture area selection.
+    /// </summary>
+    public enum ModeType
+    {
+        Region = 0,
+        Window = 1,
+        Fullscreen = 2
     }
 }

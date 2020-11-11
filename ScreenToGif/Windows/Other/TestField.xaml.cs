@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
-using ScreenToGif.Util;
 
 namespace ScreenToGif.Windows.Other
 {
@@ -19,12 +16,20 @@ namespace ScreenToGif.Windows.Other
         private void WindowTest_OnLoaded(object sender, RoutedEventArgs e)
         {
             _handle = new WindowInteropHelper(this).Handle;
+
+            //var adornerLayer = AdornerLayer.GetAdornerLayer(TestTriangle);
+            //var adorner = new ElementAdorner(TestTriangle, true, true, true, MainCanvas, OnChange);
+            //adorner.LayoutUpdated += (o, args) => Title = adorner.Width + " " + adorner.Height;
+            //adornerLayer.Add(adorner);
         }
+
+        private void OnChange()
+        {}
 
         private void WindowTest_OnLocationChanged(object sender, EventArgs e)
         {
-            Native.Rect rect;
-            Native.GetWindowRect(_handle, out rect);
+            //Native.Rect rect;
+            //Native.GetWindowRect(_handle, out rect);
 
             //LeftLabel2.Content = rect.Left;
             //TopLabel2.Content = rect.Top;
@@ -43,31 +48,10 @@ namespace ScreenToGif.Windows.Other
             //}
         }
 
-        private void Print_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            Background = Brushes.Azure;
-        }
 
-        private void CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        private void Window_Closed(object sender, EventArgs e)
         {
-            e.CanExecute = true;
-        }
-
-        private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            Background = Brushes.Aquamarine;
-        }
-
-        private void Copy_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            Background = Brushes.DarkCyan;
-        }
-
-        private void AddButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            //StatusList.Info("Hello!");
-            //StatusList.Warning("I'm!");
-            //StatusList.Error("Nicke!");
+            Environment.Exit(1);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.Windows;
 using System.Windows.Data;
 
 namespace ScreenToGif.Util.Converters
@@ -9,24 +8,22 @@ namespace ScreenToGif.Util.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var stage = value as Stage?;
-
-            if (!stage.HasValue)
-                return Application.Current.FindResource("Recorder.Record");
+            if (!(value is Stage stage))
+                return LocalizationHelper.Get("S.Recorder.Record");
 
             switch (stage)
             {
                 case Stage.Stopped:
-                    return Application.Current.FindResource("Recorder.Record");
+                    return LocalizationHelper.Get("S.Recorder.Record");
                 case Stage.Recording:
-                    return Application.Current.FindResource("Recorder.Pause");
+                    return LocalizationHelper.Get("S.Recorder.Pause");
                 case Stage.Paused:
-                    return Application.Current.FindResource("Recorder.Continue");
+                    return LocalizationHelper.Get("S.Recorder.Continue");
                 case Stage.Snapping:
-                    return Application.Current.FindResource("Recorder.Snap");
+                    return LocalizationHelper.Get("S.Recorder.Snap");
             }
 
-            return Application.Current.FindResource("Recorder.Record");
+            return LocalizationHelper.Get("S.Recorder.Record");
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

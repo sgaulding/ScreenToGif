@@ -6,28 +6,23 @@ using System.Windows.Data;
 namespace ScreenToGif.Util.Converters
 {
     /// <summary>
-    /// Bool to Int property converter. It compares the the parameter with the provided value.
+    /// Integer to Boolean property converter. It compares the the parameter with the provided value.
     /// </summary>
     public class IntToBool : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var integer = value as int?;
-
-            if (!integer.HasValue)
+            var param = parameter as string;
+            
+            if (!(value is int integer) || param == null)
                 return DependencyProperty.UnsetValue;
 
-            return integer == int.Parse(parameter.ToString());
+            return integer == int.Parse(param);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var parameterString = parameter as string;
-
-            if (parameterString == null || value.Equals(false)) 
-                return DependencyProperty.UnsetValue;
-
-            return parameter;
+            return DependencyProperty.UnsetValue;
         }
     }
 }

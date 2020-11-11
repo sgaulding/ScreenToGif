@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using ScreenToGif.Util;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace ScreenToGif.Controls
@@ -15,7 +14,7 @@ namespace ScreenToGif.Controls
         private bool _ignore;
         private Key _previousKey;
         private ModifierKeys _previousModifier;
-        private ImageButton _removeButton;
+        private ExtendedButton _removeButton;
 
         #endregion
 
@@ -43,6 +42,10 @@ namespace ScreenToGif.Controls
         public static readonly DependencyProperty CanRemoveProperty = DependencyProperty.Register("CanRemove", typeof(bool), typeof(KeyBox), new PropertyMetadata(true));
 
         public static readonly DependencyProperty DisplayNoneProperty = DependencyProperty.Register("DisplayNone", typeof(bool), typeof(KeyBox), new PropertyMetadata(false));
+
+        public static readonly DependencyProperty OnlyModifiersProperty = DependencyProperty.Register(nameof(OnlyModifiers), typeof(bool), typeof(KeyBox), new PropertyMetadata(false));
+
+        public static readonly DependencyProperty IsSingleLetterLowerCaseProperty = DependencyProperty.Register(nameof(IsSingleLetterLowerCase), typeof(bool), typeof(KeyBox), new PropertyMetadata(false, Keys_PropertyChanged));
 
         public static readonly RoutedEvent KeyChangedEvent = EventManager.RegisterRoutedEvent("KeyChanged", RoutingStrategy.Bubble, typeof(KeyChangedEventHandler), typeof(KeyBox));
 
@@ -116,6 +119,18 @@ namespace ScreenToGif.Controls
             set => SetValue(DisplayNoneProperty, value);
         }
 
+        public bool OnlyModifiers
+        {
+            get => (bool)GetValue(OnlyModifiersProperty);
+            set => SetValue(OnlyModifiersProperty, value);
+        }
+
+        public bool IsSingleLetterLowerCase
+        {
+            get => (bool)GetValue(IsSingleLetterLowerCaseProperty);
+            set => SetValue(IsSingleLetterLowerCaseProperty, value);
+        }
+
         public event KeyChangedEventHandler KeyChanged
         {
             add => AddHandler(KeyChangedEvent, value);
@@ -128,10 +143,20 @@ namespace ScreenToGif.Controls
 
         private static void Keys_PropertyChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            if (!(o is KeyBox box) || box.MainKey == null)
+            if (!(o is KeyBox box))
                 return;
 
-            box.Text = Native.GetSelectKeyText(box.MainKey ?? Key.None, box.ModifierKeys, true, !box.DisplayNone);
+            if (box.OnlyModifiers && box.ModifierKeys != ModifierKeys.None)
+            {
+                box.Text = Util.Native.GetSelectKeyText(box.ModifierKeys);
+                box.IsSelectionFinished = true;
+                return;
+            }
+
+            if (box.MainKey == null)
+                return;
+
+            box.Text = Util.Native.GetSelectKeyText(box.MainKey ?? Key.None, box.ModifierKeys, !(box.IsSingleLetterLowerCase && box.ModifierKeys == ModifierKeys.None), !box.DisplayNone);
             box.IsSelectionFinished = true;
         }
 
@@ -156,7 +181,7 @@ namespace ScreenToGif.Controls
         {
             base.OnApplyTemplate();
 
-            _removeButton = Template.FindName("RemoveButton", this) as ImageButton;
+            _removeButton = Template.FindName("RemoveButton", this) as ExtendedButton;
 
             if (_removeButton != null)
                 _removeButton.Click += (sender, args) =>
@@ -181,7 +206,7 @@ namespace ScreenToGif.Controls
             Keyboard.Focus(this);
 
             e.Handled = true;
-            base.OnPreviewMouseDown(e);
+            base.OnMouseDown(e);
         }
 
         protected override void OnPreviewKeyDown(KeyEventArgs e)
@@ -208,6 +233,14 @@ namespace ScreenToGif.Controls
 
             if (AllowAllKeys)
                 IsWindowsDown = Keyboard.IsKeyDown(Key.LWin) || Keyboard.IsKeyDown(Key.RWin);
+
+            if (OnlyModifiers)
+            {
+                ModifierKeys = Keyboard.Modifiers;
+                MainKey = null;
+                _finished = true;
+                return;
+            }
 
             var key = e.Key != Key.System ? e.Key : e.SystemKey;
 
@@ -292,7 +325,7 @@ namespace ScreenToGif.Controls
             if ((e.Key == Key.Enter || e.Key == Key.Tab) && !AllowAllKeys)
                 return;
 
-            if (e.Key == Key.PrintScreen)
+            if (e.Key == Key.PrintScreen && !OnlyModifiers)
             {
                 ModifierKeys = Keyboard.Modifiers;
                 MainKey = e.Key;

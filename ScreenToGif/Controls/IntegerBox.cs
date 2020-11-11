@@ -8,7 +8,7 @@ using System.Windows.Input;
 
 namespace ScreenToGif.Controls
 {
-    public class IntegerBox : TextBox
+    public class IntegerBox : ExtendedTextBox
     {
         private static bool _ignore;
 
@@ -17,34 +17,39 @@ namespace ScreenToGif.Controls
         /// </summary>
         public bool UseTemporary;
         public double Temporary;
-        
+
+        /// <summary>
+        /// True if it's necessary to prevent the value changed event from firing.
+        /// </summary>
+        public bool IgnoreValueChanged { get; set; }
+
         #region Dependency Property
 
-        public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register("Maximum", typeof(int), typeof(IntegerBox),
+        public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register(nameof(Maximum), typeof(int), typeof(IntegerBox),
             new FrameworkPropertyMetadata(int.MaxValue, OnMaximumPropertyChanged));
 
-        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(int), typeof(IntegerBox),
+        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(int), typeof(IntegerBox),
             new FrameworkPropertyMetadata(0, OnValuePropertyChanged));
 
-        public static readonly DependencyProperty MinimumProperty = DependencyProperty.Register("Minimum", typeof(int), typeof(IntegerBox),
+        public static readonly DependencyProperty MinimumProperty = DependencyProperty.Register(nameof(Minimum), typeof(int), typeof(IntegerBox),
             new FrameworkPropertyMetadata(0, OnMinimumPropertyChanged));
 
-        public static readonly DependencyProperty StepProperty = DependencyProperty.Register("StepValue", typeof(int), typeof(IntegerBox),
+        public static readonly DependencyProperty StepProperty = DependencyProperty.Register(nameof(StepValue), typeof(int), typeof(IntegerBox),
             new FrameworkPropertyMetadata(1));
 
-        public static readonly DependencyProperty OffsetProperty = DependencyProperty.Register("Offset", typeof(int), typeof(IntegerBox),
+        public static readonly DependencyProperty OffsetProperty = DependencyProperty.Register(nameof(Offset), typeof(int), typeof(IntegerBox),
             new FrameworkPropertyMetadata(0, OnOffsetPropertyChanged));
 
-        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register("Scale", typeof(double), typeof(IntegerBox),
+        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(nameof(Scale), typeof(double), typeof(IntegerBox),
             new PropertyMetadata(1d, OnScalePropertyChanged));
 
-        public static readonly DependencyProperty UpdateOnInputProperty = DependencyProperty.Register("UpdateOnInput", typeof(bool), typeof(IntegerBox),
+        public static readonly DependencyProperty UpdateOnInputProperty = DependencyProperty.Register(nameof(UpdateOnInput), typeof(bool), typeof(IntegerBox),
             new FrameworkPropertyMetadata(false, OnUpdateOnInputPropertyChanged));
 
-        public static readonly DependencyProperty IsObligatoryProperty = DependencyProperty.Register("IsObligatory", typeof(bool), typeof(IntegerBox));
-
-        public static readonly DependencyProperty DefaultValueIfEmptyProperty = DependencyProperty.Register("DefaultValueIfEmpty", typeof(int), typeof(IntegerBox),
+        public static readonly DependencyProperty DefaultValueIfEmptyProperty = DependencyProperty.Register(nameof(DefaultValueIfEmpty), typeof(int), typeof(IntegerBox),
             new FrameworkPropertyMetadata(0));
+
+        public static readonly DependencyProperty PropagateWheelEventProperty = DependencyProperty.Register(nameof(PropagateWheelEvent), typeof(bool), typeof(IntegerBox), new PropertyMetadata(default(bool)));
         
         #endregion
 
@@ -103,19 +108,22 @@ namespace ScreenToGif.Controls
         }
 
         [Bindable(true), Category("Common")]
-        public bool IsObligatory
-        {
-            get => (bool)GetValue(IsObligatoryProperty);
-            set => SetValue(IsObligatoryProperty, value);
-        }
-
-        [Bindable(true), Category("Common")]
         public int DefaultValueIfEmpty
         {
             get => (int)GetValue(DefaultValueIfEmptyProperty);
             set => SetValue(DefaultValueIfEmptyProperty, value);
         }
-        
+
+        /// <summary>
+        /// True if the wheel events should not be set as handled.
+        /// </summary>
+        [Bindable(true), Category("Behavior")]
+        public bool PropagateWheelEvent
+        {
+            get => (bool)GetValue(PropagateWheelEventProperty);
+            set => SetValue(PropagateWheelEventProperty, value);
+        }
+
         #endregion
 
         #region Properties Changed
@@ -130,34 +138,34 @@ namespace ScreenToGif.Controls
 
         private static void OnValuePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            var intBox = d as IntegerBox;
-
-            if (intBox == null || _ignore) return;
+            if (!(d is IntegerBox box) || _ignore) 
+                return;
 
             _ignore = true;
 
-            if (intBox.Value + intBox.Offset > intBox.Maximum)
+            if (box.Value + box.Offset > box.Maximum)
             {
-                intBox.UseTemporary = false;
-                intBox.Temporary = (intBox.Maximum / intBox.Scale) + intBox.Offset;
-                intBox.Value = intBox.Maximum + intBox.Offset;
+                box.UseTemporary = false;
+                box.Temporary = (box.Maximum / box.Scale) + box.Offset;
+                box.Value = box.Maximum + box.Offset;
             }
 
-            if (intBox.Value + intBox.Offset < intBox.Minimum)
+            if (box.Value + box.Offset < box.Minimum)
             {
-                intBox.UseTemporary = false;
-                intBox.Temporary = (intBox.Minimum / intBox.Scale) + intBox.Offset;
-                intBox.Value = intBox.Minimum + intBox.Offset;
+                box.UseTemporary = false;
+                box.Temporary = (box.Minimum / box.Scale) + box.Offset;
+                box.Value = box.Minimum + box.Offset;
             }
 
             _ignore = false;
 
-            var value = ((int)Math.Round(((intBox.UseTemporary ? intBox.Temporary : intBox.Value) - intBox.Offset) * intBox.Scale, MidpointRounding.ToEven)).ToString();
+            var value = ((int)Math.Round(((box.UseTemporary ? box.Temporary : box.Value) - box.Offset) * box.Scale, MidpointRounding.ToEven)).ToString();
 
-            if (!string.Equals(intBox.Text, value))
-                intBox.Text = value;
+            if (!string.Equals(box.Text, value))
+                box.Text = value;
 
-            intBox.RaiseValueChangedEvent();
+            if (!box.IgnoreValueChanged)
+                box.RaiseValueChangedEvent();
         }
 
         private static void OnMinimumPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -296,7 +304,7 @@ namespace ScreenToGif.Controls
             //For example, The value 600 and the Offset 20 should display the text 580.
             //Value = (Text + Offset) * Scale.
 
-            Temporary = Convert.ToInt32(Text, CultureInfo.CurrentCulture) / Scale + Offset;
+            Temporary = Convert.ToInt32(Text, CultureInfo.CurrentUICulture) / Scale + Offset;
             Value = (int)Temporary;
 
             base.OnTextChanged(e);
@@ -318,7 +326,7 @@ namespace ScreenToGif.Controls
                 //For example, The value 600 and the Offset 20 should display the text 580.
                 //Value = Text + Offset.
                 UseTemporary = true;
-                Temporary = Convert.ToInt32(Text, CultureInfo.CurrentCulture) / Scale + Offset;
+                Temporary = Convert.ToInt32(Text, CultureInfo.CurrentUICulture) / Scale + Offset;
                 Value = (int)Math.Round(Temporary);
                 UseTemporary = false;
                 return;
@@ -351,12 +359,11 @@ namespace ScreenToGif.Controls
                     ? 10 : Keyboard.Modifiers == ModifierKeys.Control
                         ? 5 : StepValue;
 
-            if (e.Delta > 0)
-                Value += step;
-            else
-                Value -= step;
+            Value = e.Delta > 0 ? 
+                Math.Min(Maximum + Offset, Value + step) : 
+                Math.Max(Minimum + Offset, Value - step);
 
-            e.Handled = true;
+            e.Handled = !PropagateWheelEvent;
         }
 
         #endregion
@@ -393,7 +400,7 @@ namespace ScreenToGif.Controls
 
         private bool IsTextAllowed(string text)
         {
-            return Minimum < 0 ? Regex.IsMatch(text, @"^[-]?(?:\d{1,9})?$") : Regex.IsMatch(text, @"^(?:\d{1,9})?$");
+            return Minimum < 0 ? Regex.IsMatch(text, @"^[-]?(?:[0-9]{1,9})?$") : Regex.IsMatch(text, @"^(?:[0-9]{1,9})?$");
         }
 
         #endregion

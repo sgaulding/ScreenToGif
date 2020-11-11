@@ -1,5 +1,4 @@
-﻿using System.IO.Compression;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 
 namespace ScreenToGif.Util
 {
@@ -30,38 +29,23 @@ namespace ScreenToGif.Util
 
         public bool DetectUnchangedPixels { get; set; }
 
-        public Color? ChromaKey { get; set; }
+        public Color? DummyColor { get; set; }
 
 
         #region Gif
 
         public GifEncoderType EncoderType { get; set; }
 
-        public ColorQuantizationType ColorQuantizationType { get; set; }
-
         /// <summary>
         /// When used with the gif encoder, 0 to 20.
         /// </summary>
-        public int SamplingFactor { get; set; }
+        public int Quality { get; set; }
 
         public int MaximumNumberColors { get; set; }
 
         public bool UseGlobalColorTable { get; set; }
 
-        /// <summary>
-        /// When enabled, sets the selected color as the transparent color of the gif.
-        /// Also sets the first frame as "RestoreBackground" and the last frame as "Leave".
-        /// This option disables the "DetectUnchangedPixels" option, since it's conflicting.
-        /// </summary>
-        public bool EnableTransparency { get; set; }
-
-        public Color? TransparencyColor { get; set; }
-        
-        #endregion
-
-        #region Apng
-
-        public ApngEncoderType ApngEncoder { get; set; }
+        public ColorQuantizationType ColorQuantizationType { get; set; }
 
         #endregion
 
@@ -75,8 +59,6 @@ namespace ScreenToGif.Util
         public uint VideoQuality { get; set; }
 
         public string Command { get; set; }
-        
-        public string SecondPassCommand { get; set; }
 
         public string ExtraParameters { get; set; }
 
@@ -86,20 +68,6 @@ namespace ScreenToGif.Util
         public bool FlipVideo { get; set; }
 
         public int Framerate { get; set; }
-
-        #endregion
-
-        #region Psd
-
-        public bool Compress { get; set; }
-
-        public bool SaveTimeline { get; set; }
-
-        #endregion
-
-        #region Project / Image
-
-        public CompressionLevel CompressionLevel { get; set; }
 
         #endregion
     }

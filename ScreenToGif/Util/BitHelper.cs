@@ -51,24 +51,6 @@ namespace ScreenToGif.Util
         }
 
         ///<summary>
-        ///Convert big-endian to little-endian or reserve.
-        ///</summary>
-        internal static long ConvertEndian(long i)
-        {
-            return BitConverter.ToInt64(ConvertEndian(BitConverter.GetBytes(i)), 0);
-        }
-
-        ///<summary>
-        ///Convert big-endian to little-endian or reserve.
-        ///</summary>
-        internal static long ConvertEndian(double i)
-        {
-            var lo = BitConverter.DoubleToInt64Bits(i);
-
-            return ConvertEndian(lo);
-        }
-
-        ///<summary>
         ///Compare two byte array.
         ///</summary>
         internal static bool IsBytesEqual(byte[] byte1, byte[] byte2)

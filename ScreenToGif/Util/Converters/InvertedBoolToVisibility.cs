@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
@@ -12,18 +16,22 @@ namespace ScreenToGif.Util.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(value is bool vis))
+            var vis = value as bool?;
+
+            if (!vis.HasValue)
                 return DependencyProperty.UnsetValue;
 
-            return vis ? Visibility.Collapsed: Visibility.Visible;
+            return vis.Value ? Visibility.Collapsed: Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(value is Visibility vis))
+            var vis = value as Visibility?;
+
+            if (!vis.HasValue)
                 return DependencyProperty.UnsetValue;
 
-            return !vis.Equals(Visibility.Visible);
+            return !vis.Value.Equals(Visibility.Visible);
         }
     }
 }

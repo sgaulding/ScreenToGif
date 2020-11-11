@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace ScreenToGif.Util
+namespace ScreenToGif.FileWriters
 {
     /// <summary>
     /// Extra methods for dealing with Files, Folders and Directories.

@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
 using ScreenToGif.Util;
 
@@ -18,11 +17,11 @@ namespace ScreenToGif.Controls
         #region Variables
 
         private Button _hideButton;
-        private ExtendedMenuItem _extrasMenuItem;
+        private ImageMenuItem _extrasMenuItem;
         private TabPanel _tabPanel;
         private Border _border;
-        private ExtendedToggleButton _notificationButton;
-        private NotificationBox _notificationBox;
+        private ImageToggleButton _notificationButton;
+        private NotificationListControl _notificationList;
 
         #endregion
 
@@ -78,17 +77,17 @@ namespace ScreenToGif.Controls
             _tabPanel = Template.FindName("TabPanel", this) as TabPanel;
             _border = Template.FindName("ContentBorder", this) as Border;
 
-            _notificationButton = Template.FindName("NotificationsButton", this) as ExtendedToggleButton;
-            _notificationBox = Template.FindName("NotificationBox", this) as NotificationBox;
-            _extrasMenuItem = Template.FindName("ExtrasMenuItem", this) as ExtendedMenuItem;
+            _notificationButton = Template.FindName("NotificationsButton", this) as ImageToggleButton;
+            _notificationList = Template.FindName("NotificationList", this) as NotificationListControl;
+            _extrasMenuItem = Template.FindName("ExtrasMenuItem", this) as ImageMenuItem;
 
             _hideButton = Template.FindName("HideGridButton", this) as Button;
 
-            //Hide button.
+            //Hide tab
             if (_hideButton != null)
                 _hideButton.Click += HideButton_Clicked;
 
-            //Show tab (if hidden).
+            //Show tab (if hidden)
             if (_tabPanel != null)
             {
                 foreach (TabItem tabItem in _tabPanel.Children)
@@ -97,11 +96,8 @@ namespace ScreenToGif.Controls
                 _tabPanel.PreviewMouseWheel += TabControl_PreviewMouseWheel;
             }
 
-            if (_notificationButton != null)
-                _notificationButton.Checked += NotificationButton_Checked;
-
             UpdateVisual();
-            AnimateOrNot();
+            UpdateNotificationButton();
         }
 
         #region Events
@@ -205,17 +201,7 @@ namespace ScreenToGif.Controls
             _tabPanel.BeginAnimation(MarginProperty, marginAnimation);
         }
 
-        private void NotificationButton_Checked(object sender, RoutedEventArgs e)
-        {
-            if (!IsLoaded)
-                return;
-
-            if (_notificationButton.FindResource("NotificationStoryboard") is Storyboard story)
-                story.Stop();
-        }
-
         #endregion
-
 
         /// <summary>
         /// Changes the visibility of the Content.
@@ -235,9 +221,9 @@ namespace ScreenToGif.Controls
             //var ness = Glass.GlassColor.GetBrightness();
             //var aa = color.ConvertRgbToHsv();
 
-            var darkForeground = !SystemParameters.IsGlassEnabled || !Other.IsGlassSupported() || Glass.GlassColor.GetBrightness() > 973 || !isActivated;
+            var darkForeground = !SystemParameters.IsGlassEnabled || !Other.IsWin8OrHigher() || Glass.GlassColor.GetBrightness() > 973 || !isActivated;           
             //var darkForeground = !SystemParameters.IsGlassEnabled || !Other.IsWin8OrHigher() || aa.V > 0.5 || !isActivated;           
-            var showBackground = !Other.IsGlassSupported();
+            var showBackground = !Other.IsWin8OrHigher();
 
             //Console.WriteLine("!IsGlassEnabled: " + !SystemParameters.IsGlassEnabled);
             //Console.WriteLine("!UsesColor: " + !Glass.UsesColor);
@@ -247,113 +233,45 @@ namespace ScreenToGif.Controls
             //Console.WriteLine("IsDark: " + isDark);
 
             //Update each tab.
-            if (_tabPanel != null)
-                foreach (var tab in _tabPanel.Children.OfType<AwareTabItem>())
-                {
-                    //To force the change.
-                    if (tab.IsDark == !darkForeground)
-                        tab.IsDark = !tab.IsDark;
+            foreach (var tab in _tabPanel.Children.OfType<AwareTabItem>())
+            {
+                //To force the change.
+                if (tab.IsDark == !darkForeground)
+                    tab.IsDark = !tab.IsDark;
 
-                    if (tab.ShowBackground == showBackground)
-                        tab.ShowBackground = !tab.ShowBackground;
+                if (tab.ShowBackground == showBackground)
+                    tab.ShowBackground = !tab.ShowBackground;
 
-                    tab.IsDark = !darkForeground;
-                    tab.ShowBackground = showBackground;
-                }
+                tab.IsDark = !darkForeground;
+                tab.ShowBackground = showBackground;
+            }
 
             //Update the buttons.
             if (_notificationButton != null)
-            {
-                _notificationButton.DarkMode = !darkForeground;
-                _notificationButton.IsOverNonClientArea = UserSettings.All.EditorExtendChrome;
-            }
-
+                _notificationButton.DarkMode = !darkForeground && UserSettings.All.EditorExtendChrome;
+            
             if (_extrasMenuItem != null)
-            {
-                _extrasMenuItem.DarkMode = !darkForeground;
-                _extrasMenuItem.IsOverNonClientArea = UserSettings.All.EditorExtendChrome;
-            }
+                _extrasMenuItem.DarkMode = !darkForeground && UserSettings.All.EditorExtendChrome;
         }
 
-
-        public void UpdateNotifications(int? id = null)
+        public void UpdateNotifications()
         {
-            _notificationBox?.UpdateNotification(id);
+            _notificationList?.UpdateList();
 
-            AnimateOrNot();
+            UpdateNotificationButton();
         }
 
-        public EncoderListViewItem AddEncoding(int id, bool isActive = false)
+        public void UpdateNotificationButton()
         {
-            //Display the popup (if the editor is active) and animate the button.
-            if (isActive)
-                _notificationButton.IsChecked = true;
-
-            AnimateOrNot(true);
-
-            return _notificationBox.AddEncoding(id);
-        }
-
-        public void UpdateEncoding(int? id = null, bool onlyStatus = false)
-        {
-            if (!onlyStatus)
-                _notificationBox?.UpdateEncoding(id);
-
-            AnimateOrNot();
-        }
-
-        public EncoderListViewItem RemoveEncoding(int id)
-        {
-            try
-            {
-                return _notificationBox.RemoveEncoding(id);
-            }
-            finally
-            {
-                AnimateOrNot();
-            }
-        }
-
-        private void AnimateOrNot(bool add = false)
-        {
-            var story = _notificationButton.FindResource("NotificationStoryboard") as Storyboard;
-
-            if (story != null)
-            {
-                story.Stop();
-
-                //Blink the button when an encoding is added.
-                if (add)
-                    story.Begin();
-            }
-
-            var anyProcessing = EncodingManager.Encodings.Any(s => s.Status == Status.Processing);
-            var anyCompleted = EncodingManager.Encodings.Any(s => s.Status == Status.Completed);
-            var anyFaulty = EncodingManager.Encodings.Any(s => s.Status == Status.Error);
-
-            _notificationButton.Icon = anyProcessing ? FindResource("Vector.Progress") as Brush :
-                anyCompleted ? FindResource("Vector.Ok.Round") as Brush :
-                anyFaulty ? FindResource("Vector.Cancel.Round") as Brush : _notificationButton.Icon;
-            _notificationButton.IsImportant = anyProcessing;
-            _notificationButton.SetResourceReference(ExtendedToggleButton.TextProperty, anyProcessing ? "S.Encoder.Encoding" : anyCompleted ? "S.Encoder.Completed" : anyFaulty? "S.Encoder.Error" : "S.Notifications");
-
-            if (anyProcessing || anyCompleted || anyFaulty)
+            if (System.ComponentModel.DesignerProperties.GetIsInDesignMode(this))
                 return;
 
-            //Animate the button for notifications, when there are no encodings.
             var most = NotificationManager.Notifications.Select(s => s.Kind).OrderByDescending(a => (int)a).FirstOrDefault();
+            
+            _notificationButton.Content =  FindResource(StatusBand.KindToString(most)) as Canvas;
 
-            _notificationButton.Icon = TryFindResource(StatusBand.KindToString(most)) as Brush;
-            _notificationButton.IsImportant = most != StatusType.None;
-            _notificationButton.SetResourceReference(ExtendedToggleButton.TextProperty, "S.Notifications");
-
-            if(story != null)
-            {
-                story.Stop();
-
-                if (most != StatusType.None)
-                    story.Begin();
-            }
+            if (most != StatusType.None)
+                (_notificationButton.FindResource("NotificationStoryboard") as Storyboard)?.Begin();
         }
     }
 }

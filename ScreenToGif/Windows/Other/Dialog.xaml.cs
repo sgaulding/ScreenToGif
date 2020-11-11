@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using ScreenToGif.Util;
 
 namespace ScreenToGif.Windows.Other
@@ -15,23 +15,23 @@ namespace ScreenToGif.Windows.Other
 
         #region Methods
 
-        private Brush GetIcon(Icons icon)
+        private Canvas GetIcon(Icons icon)
         {
             switch (icon)
             {
                 case Icons.Error:
-                    return (Brush)FindResource("Vector.Cancel.Round");
+                    return (Canvas)FindResource("Vector.Error");
                 case Icons.Info:
-                    return (Brush)FindResource("Vector.Info");
+                    return (Canvas)FindResource("Vector.Info");
                 case Icons.Success:
-                    return (Brush)FindResource("Vector.Ok.Round");
+                    return (Canvas)FindResource("Vector.Success");
                 case Icons.Warning:
-                    return (Brush)FindResource("Vector.Warning");
+                    return (Canvas)FindResource("Vector.Warning");
                 case Icons.Question:
-                    return (Brush)FindResource("Vector.Question");
+                    return (Canvas)FindResource("Vector.Question");
 
                 default:
-                    return (Brush)FindResource("Vector.Info");
+                    return (Canvas)FindResource("Vector.Info");
             }
         }
 
@@ -43,7 +43,7 @@ namespace ScreenToGif.Windows.Other
 
             OkButton.Focus();
 
-            IconBorder.Background = GetIcon(icon);
+            IconViewbox.Child = GetIcon(icon);
 
             InstructionLabel.Text = instruction;
             ObservationTextBlock.Text = observation;
@@ -57,7 +57,7 @@ namespace ScreenToGif.Windows.Other
 
             CancelButton.Focus();
 
-            IconBorder.Background = GetIcon(icon);
+            IconViewbox.Child = GetIcon(icon);
 
             InstructionLabel.Text = instruction;
             ObservationTextBlock.Text = observation;
@@ -74,7 +74,7 @@ namespace ScreenToGif.Windows.Other
             else
                 NoButton.Focus();
 
-            IconBorder.Background = GetIcon(icon);
+            IconViewbox.Child = GetIcon(icon);
 
             InstructionLabel.Text = instruction;
             ObservationTextBlock.Text = observation;
@@ -84,7 +84,7 @@ namespace ScreenToGif.Windows.Other
         /// <summary>
         /// Handle all pressed keys that get sent to this Window
         /// </summary>
-        private void Dialog_KeyDown(object sender, KeyEventArgs e)
+        private void DialogKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)
             {
@@ -165,5 +165,36 @@ namespace ScreenToGif.Windows.Other
         }
 
         #endregion
+        
+        ///// <summary>
+        ///// Dialog Icons.
+        ///// </summary>
+        //public enum Icons
+        //{
+        //    /// <summary>
+        //    /// Information. Blue.
+        //    /// </summary>
+        //    Info,
+
+        //    /// <summary>
+        //    /// Warning, yellow.
+        //    /// </summary>
+        //    Warning,
+
+        //    /// <summary>
+        //    /// Error, red.
+        //    /// </summary>
+        //    Error,
+
+        //    /// <summary>
+        //    /// Success, green.
+        //    /// </summary>
+        //    Success,
+
+        //    /// <summary>
+        //    /// A question mark, blue.
+        //    /// </summary>
+        //    Question,
+        //}
     }
 }

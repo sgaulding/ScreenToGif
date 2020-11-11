@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
-using ScreenToGif.Native;
 using ScreenToGif.Util;
 
 namespace ScreenToGif.Windows.Other
@@ -14,12 +13,7 @@ namespace ScreenToGif.Windows.Other
         public Startup()
         {
             InitializeComponent();
-        }
 
-        #region Events
-
-        private void Startup_Initialized(object sender, EventArgs e)
-        {
             #region Adjust the position
 
             //Tries to adjust the position/size of the window, centers on screen otherwise.
@@ -28,30 +22,24 @@ namespace ScreenToGif.Windows.Other
 
             #endregion
         }
+
+        #region Events
 
         private void Startup_Loaded(object sender, RoutedEventArgs e)
         {
             SystemEvents.DisplaySettingsChanged += System_DisplaySettingsChanged;
-
-            #region Adjust the position
-
-            //Tries to adjust the position/size of the window, centers on screen otherwise.
-            if (!UpdatePositioning())
-                WindowStartupLocation = WindowStartupLocation.CenterScreen;
-
-            #endregion
 
             NotificationUpdated();
         }
 
         private void Update_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = Global.UpdateAvailable != null;
+            e.CanExecute = Global.UpdateModel != null;
         }
 
         private void Update_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            App.MainViewModel?.PromptUpdate.Execute(null);
+            App.MainViewModel?.UpdateAction();
         }
 
         private void System_DisplaySettingsChanged(object sender, EventArgs e)
@@ -122,13 +110,13 @@ namespace ScreenToGif.Windows.Other
 
         public void NotificationUpdated()
         {
-            if (Global.UpdateAvailable == null)
+            if (Global.UpdateModel == null)
             {
                 UpdateTextBlock.Visibility = Visibility.Collapsed;
                 return;
             }
 
-            UpdateRun.Text = string.Format(LocalizationHelper.Get("S.StartUp.NewRelease") ?? "New release available • {0}", Global.UpdateAvailable.Version.ToStringShort());
+            UpdateRun.Text = string.Format(LocalizationHelper.Get("NewRelease") ?? "New release available • {0}", Global.UpdateModel.Version.ToStringShort());
             UpdateTextBlock.Visibility = Visibility.Visible;
 
             CommandManager.InvalidateRequerySuggested();

@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace ScreenToGif.Controls
 {
@@ -12,23 +11,26 @@ namespace ScreenToGif.Controls
     {
         #region Variables
 
-        public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Brush), typeof(DropDownButton));
-        public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(DropDownButton), new FrameworkPropertyMetadata());
-        public static readonly DependencyProperty MaxSizeProperty = DependencyProperty.Register(nameof(MaxSize), typeof(double), typeof(DropDownButton), new FrameworkPropertyMetadata(26.0));
-        public static readonly DependencyProperty IsVerticalProperty = DependencyProperty.Register(nameof(IsVertical), typeof(bool), typeof(DropDownButton), new FrameworkPropertyMetadata(false));
+        public static readonly DependencyProperty ContentProperty = DependencyProperty.Register("Content", typeof(UIElement), typeof(DropDownButton), new FrameworkPropertyMetadata());
+
+        public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register("Description", typeof(string), typeof(DropDownButton), new FrameworkPropertyMetadata());
+
+        public static readonly DependencyProperty MaxSizeProperty = DependencyProperty.Register("MaxSize", typeof(double), typeof(DropDownButton), new FrameworkPropertyMetadata(26.0));
+
+        public static readonly DependencyProperty IsVerticalProperty = DependencyProperty.Register("IsVertical", typeof(bool), typeof(DropDownButton), new FrameworkPropertyMetadata(false));
 
         #endregion
 
         #region Properties
 
         /// <summary>
-        /// The icon of the button.
+        /// The Image of the button.
         /// </summary>
-        [Description("The icon of the DropDownButton."), Category("Common")]
-        public Brush Icon
+        [Description("The Image of the DropDownButton."), Category("Common")]
+        public UIElement Content
         {
-            get => (Brush)GetValue(IconProperty);
-            set => SetCurrentValue(IconProperty, value);
+            get => (UIElement)GetValue(ContentProperty);
+            set => SetCurrentValue(ContentProperty, value);
         }
 
         /// <summary>

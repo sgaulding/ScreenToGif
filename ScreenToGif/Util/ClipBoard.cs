@@ -105,8 +105,7 @@ namespace ScreenToGif.Util
             foreach (var frameInfo in Items[index])
             {
                 //Changes the path of the image.
-                var filename = GetUniqueFilename(recordingFolder, "P");
-                //var filename = Path.Combine(recordingFolder, $"{pasteIndex} - {Path.GetFileNameWithoutExtension(frameInfo.Path)} {DateTime.Now:hh-mm-ss-ffff}.png");
+                var filename = Path.Combine(recordingFolder, $"{pasteIndex} - {Path.GetFileNameWithoutExtension(frameInfo.Path)} {DateTime.Now:hh-mm-ss-FFFF}.png");
 
                 //Copy the image to the folder.
                 File.Copy(frameInfo.Path, filename, true);
@@ -153,25 +152,6 @@ namespace ScreenToGif.Util
 
             if (!Directory.Exists(CurrentFolder))
                 Directory.CreateDirectory(CurrentFolder);
-        }
-
-        private static string GetUniqueFilename(string folder, string prefix = "")
-        {
-            try
-            {
-                var index = 0;
-                var name = Path.Combine(folder, $"{prefix}{index}.png");
-
-                while (File.Exists(name))
-                    name = Path.Combine(folder, $"{prefix}{index++}.png");
-
-                return name;
-            }
-            catch (Exception e)
-            {
-                LogWriter.Log(e, "impossible to get a unique filename.");
-                return Path.Combine(folder, $"{prefix}{DateTime.Now:hh-mm-ss-ffff}.png");
-            }
         }
 
         #endregion

@@ -12,15 +12,21 @@ namespace ScreenToGif.Util.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(value is long cent))
+            var cent = value as long?;
+
+            if (!cent.HasValue)
                 return DependencyProperty.UnsetValue;
 
-            return cent / 255F;
+            var brush = cent.Value / 255F;
+
+            return brush;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(parameter is double parameterString) || value?.Equals(false) == true)
+            var parameterString = parameter as double?;
+
+            if (parameterString == null || value.Equals(false))
                 return DependencyProperty.UnsetValue;
 
             return parameter;

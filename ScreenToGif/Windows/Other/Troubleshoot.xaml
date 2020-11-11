@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:n="clr-namespace:ScreenToGif.Controls"
         Title="{DynamicResource S.Troubleshoot.Title}" Height="450" Width="800" MinHeight="350" MinWidth="700"
-        Icon="/Resources/Logo.ico" WindowStartupLocation="CenterScreen" Background="{DynamicResource Panel.Background}"
+        Icon="/Resources/Logo.ico" WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded">
 
     <Grid>
@@ -15,20 +15,19 @@
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Background="{DynamicResource Panel.Background.Level4}">
+        <Grid Grid.Row="0" Background="#FFF9F9FF">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="40"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Margin="6" Background="{StaticResource Vector.Warning}" Opacity="{DynamicResource Element.Opacity}"/>
+            <Viewbox Grid.Column="0" Margin="6" Child="{StaticResource Vector.Warning}" MaxWidth="25" MaxHeight="25"/>
 
             <TextBlock Grid.Column="1" x:Name="TypeLabel" Text="{DynamicResource S.Troubleshoot.Windows}" Margin="5" VerticalAlignment="Center" 
-                       FontFamily="Segoe UI Semilight" FontSize="18" Foreground="{DynamicResource Element.Foreground.Header}"/>
+                       FontFamily="Segoe UI Semilight" FontSize="18" Foreground="#FF003399"/>
 
-            <TextBlock Grid.Column="2" Text="{DynamicResource S.Troubleshoot.Windows.Info}" FontSize="12" Foreground="{DynamicResource Element.Foreground.Header}" 
-                       TextAlignment="Center" VerticalAlignment="Center" Margin="3" TextWrapping="Wrap"/>
+            <TextBlock Grid.Column="2" Text="{DynamicResource S.Troubleshoot.Windows.Info}" FontSize="12" Foreground="#FF003399" TextAlignment="Center" VerticalAlignment="Center" Margin="3" TextWrapping="Wrap"/>
         </Grid>
 
         <Grid Grid.Row="1">
@@ -37,8 +36,8 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
 
-            <n:ExtendedRadioButton Grid.Column="0" x:Name="NowRadioButton" Text="{DynamicResource S.Troubleshoot.Windows.Current}" TextWrapping="Wrap" Checked="KindRadioButton_Checked"/>
-            <n:ExtendedRadioButton Grid.Column="1" x:Name="LaterRadioButton" Text="{DynamicResource S.Troubleshoot.Windows.Next}" TextWrapping="Wrap" Checked="KindRadioButton_Checked"/>
+            <n:ImageRadioButton Grid.Column="0" x:Name="NowRadioButton" Text="{DynamicResource S.Troubleshoot.Windows.Current}" TextWrapping="Wrap" Checked="KindRadioButton_Checked"/>
+            <n:ImageRadioButton Grid.Column="1" x:Name="LaterRadioButton" Text="{DynamicResource S.Troubleshoot.Windows.Next}" TextWrapping="Wrap" Checked="KindRadioButton_Checked"/>
         </Grid>
 
         <Viewbox Grid.Row="2" Stretch="Uniform" StretchDirection="Both" Margin="3" VerticalAlignment="Center">
@@ -64,14 +63,13 @@
             </TextBlock>
         </Grid>
 
-        <Grid Grid.Row="4" Background="{DynamicResource Panel.Background.Level3}">
+        <Grid Grid.Row="4" Background="WhiteSmoke" UseLayoutRounding="False">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="Auto" MinWidth="110"/>
             </Grid.ColumnDefinitions>
 
-            <n:ExtendedButton Grid.Column="1" x:Name="OkButton" Text="{DynamicResource S.Ok}" Icon="{StaticResource Vector.Ok}" 
-                              ContentWidth="18" ContentHeight="18" Padding="5,0" MinWidth="90" Margin="5" Click="OkButton_Click" IsCancel="True"/>
+            <n:ImageButton Grid.Column="1" x:Name="OkButton" Text="{DynamicResource Ok}" Margin="5" Padding="2,0" ContentHeight="20" Content="{StaticResource Vector.Ok}" Click="OkButton_Click" IsCancel="True"/>
         </Grid>
     </Grid>
 </Window>

@@ -100,8 +100,8 @@ namespace ScreenToGif.Controls
         [Description("Decides if it should fit the image on start.")]
         public bool FitImage
         {
-            get => (bool)GetValue(FitImageProperty);
-            set => SetCurrentValue(FitImageProperty, value);
+            get => (bool)GetValue(ImageScaleProperty);
+            set => SetCurrentValue(ImageScaleProperty, value);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace ScreenToGif.Controls
         public double ImageDpi { get; set; }
 
         /// <summary>
-        /// The amount of scale of the image x the visuals. 
+        /// The ammount of scale of the image x the visuals. 
         /// (Dpi of the images compared with the dpi of the UIElements).
         /// </summary>
         public double ScaleDiff { get; set; }
@@ -188,6 +188,8 @@ namespace ScreenToGif.Controls
 
             if (!(e.NewValue is double value))
                 return;
+
+            box._previousZoom = e.OldValue as double? ?? 1;
 
             //Maximum and minimum.
             if (value < 0.1)
@@ -394,20 +396,20 @@ namespace ScreenToGif.Controls
         }
 
         /// <summary>
-        /// Save the current zoom level.
+        /// Returns to the previous selected zoom.
         /// </summary>
-        public void SaveCurrentZoom()
-        {
-            _previousZoom = Zoom;
-        }
-
-        /// <summary>
-        /// Returns to the previously saved zoom level.
-        /// </summary>
-        public void RestoreSavedZoom()
+        public void ResetToPrevious()
         {
             //Resets the zoom.
             Zoom = _previousZoom;
+        }
+
+        /// <summary>
+        /// Sets the current zoom as the previous zoom.
+        /// </summary>
+        public void SetZoomAsPrevious()
+        {
+            _previousZoom = Zoom;
         }
 
         /// <summary>

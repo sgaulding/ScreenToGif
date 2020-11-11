@@ -13,9 +13,9 @@ namespace ScreenToGif.Cloud
                     return new Imgur.Imgur();
                 case UploadService.Imgur:
                     return new Imgur.Imgur(false);
-                case UploadService.GfycatAnonymous:
+                case UploadService.GyfcatAnonymous:
                     return new Gfycat();
-                //case UploadService.Gfycat:
+                //case UploadService.Gyfcat:
                 //    return new Gfycat();
                 case UploadService.Yandex:
                     return new YandexDisk.YandexDisk(UserSettings.All.YandexDiskOAuthToken);

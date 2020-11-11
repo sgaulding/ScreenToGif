@@ -9,14 +9,15 @@ using System.Windows.Media;
 namespace ScreenToGif.Controls
 {
     /// <summary>
-    /// A Border used to provide the default look of DataGrid headers.
-    /// When Background or BorderBrush are set, the rendering will revert back to the default Border implementation.
+    ///     A Border used to provide the default look of DataGrid headers.
+    ///     When Background or BorderBrush are set, the rendering will
+    ///     revert back to the default Border implementation.
     /// </summary>
     public sealed class DataGridHeaderBorder : Border
     {
         static DataGridHeaderBorder()
         {
-            //We always set this to true on these borders, so just default it to true here.
+            // We always set this to true on these borders, so just default it to true here.
             SnapsToDevicePixelsProperty.OverrideMetadata(typeof(DataGridHeaderBorder), new FrameworkPropertyMetadata(true));
         }
 
@@ -153,7 +154,7 @@ namespace ScreenToGif.Controls
         #region Layout
 
         /// <summary>
-        /// Calculates the desired size of the element given the constraint.
+        ///     Calculates the desired size of the element given the constraint.
         /// </summary>
         protected override Size MeasureOverride(Size constraint)
         {
@@ -175,12 +176,12 @@ namespace ScreenToGif.Controls
             var childHeight = constraint.Height;
 
             // If there is an actual constraint, then reserve space for the chrome
-            if (!double.IsInfinity(childWidth))
+            if (!Double.IsInfinity(childWidth))
             {
                 childWidth = Math.Max(0.0, childWidth - padding.Left - padding.Right);
             }
 
-            if (!double.IsInfinity(childHeight))
+            if (!Double.IsInfinity(childHeight))
             {
                 childHeight = Math.Max(0.0, childHeight - padding.Top - padding.Bottom);
             }
@@ -289,7 +290,8 @@ namespace ScreenToGif.Controls
         #region Freezable Cache
 
         /// <summary>
-        /// Creates a cache of frozen Freezable resources for use across all instances of the border.
+        ///     Creates a cache of frozen Freezable resources for use 
+        ///     across all instances of the border.
         /// </summary>
         private static void EnsureCache(int size)
         {
@@ -314,7 +316,7 @@ namespace ScreenToGif.Controls
         }
 
         /// <summary>
-        /// Releases all resources in the cache.
+        ///     Releases all resources in the cache.
         /// </summary>
         private static void ReleaseCache()
         {
@@ -330,7 +332,7 @@ namespace ScreenToGif.Controls
         }
 
         /// <summary>
-        /// Retrieves a cached resource.
+        ///     Retrieves a cached resource.
         /// </summary>
         private static Freezable GetCachedFreezable(int index)
         {
@@ -343,7 +345,7 @@ namespace ScreenToGif.Controls
         }
 
         /// <summary>
-        /// Caches a resources.
+        ///     Caches a resources.
         /// </summary>
         private static void CacheFreezable(Freezable freezable, int index)
         {
@@ -359,7 +361,7 @@ namespace ScreenToGif.Controls
         }
 
         private static List<Freezable> _freezableCache;
-        private static readonly object _cacheAccess = new object();
+        private static object _cacheAccess = new object();
 
         #endregion
 

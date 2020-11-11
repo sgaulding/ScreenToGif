@@ -23,7 +23,7 @@ namespace ScreenToGif.Windows.Other
                 return;
 
             KeysDataGrid.ItemsSource = InternalList;
-            KeysDataGrid.FocusOnFirstCell();
+            KeysDataGrid.SelectedIndex = 0;
         }
 
         private void RemoveButton_OnMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -61,7 +61,7 @@ namespace ScreenToGif.Windows.Other
             if (!box.MainKey.HasValue)
                 return;
 
-            InternalList[KeysDataGrid.SelectedIndex].KeyList.Add(new SimpleKeyGesture(box.MainKey.Value, box.ModifierKeys, !box.IsSingleLetterLowerCase));
+            InternalList[KeysDataGrid.SelectedIndex].KeyList.Add(new SimpleKeyGesture(box.MainKey.Value, box.ModifierKeys, true));
             KeysDataGrid.Items.Refresh();
         }
 

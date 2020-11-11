@@ -84,14 +84,17 @@ namespace ScreenToGif.Controls
 
         private static void FillPropChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is CroppingAdorner crp)
+            var crp = d as CroppingAdorner;
+
+            if (crp != null)
                 crp._cropMask.Fill = (Brush) e.NewValue;
         }
 
         private static void ClipRectanglePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (!(d is CroppingAdorner crp))
-                return;
+            var crp = d as CroppingAdorner;
+
+            if (crp == null) return;
 
             crp._cropMask.Interior = (Rect)e.NewValue;
             crp.SetThumbs(crp._cropMask.Interior);
@@ -118,8 +121,7 @@ namespace ScreenToGif.Controls
             {
                 IsHitTestVisible = false,
                 Interior = rcInit,
-                Fill = Fill,
-                Focusable = true
+                Fill = Fill
             };
 
             _thumbCanvas = new Canvas
@@ -140,8 +142,6 @@ namespace ScreenToGif.Controls
             BuildCorner(ref _thumbBottomRight, Cursors.SizeNWSE);
             BuildCenter(ref _thumbCenter);
 
-            _cropMask.PreviewKeyDown += CropMask_PreviewKeyDown;
-
             //Cropping handlers.
             _thumbBottomLeft.DragDelta += HandleBottomLeft;
             _thumbBottomRight.DragDelta += HandleBottomRight;
@@ -156,96 +156,6 @@ namespace ScreenToGif.Controls
             //Clipping interior should be withing the bounds of the adorned element.
             if (adornedElement is FrameworkElement element)
                 element.SizeChanged += AdornedElement_SizeChanged;
-        }
-
-        private void CropMask_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            //Control + Shift: Expand both ways.
-            if ((Keyboard.Modifiers & ModifierKeys.Control) != 0 && (Keyboard.Modifiers & ModifierKeys.Shift) != 0)
-            {
-                switch (e.Key)
-                {
-                    case Key.Up:
-                        HandleBottom(_thumbCenter, new DragDeltaEventArgs(0, 1));
-                        HandleTop(_thumbCenter, new DragDeltaEventArgs(0, -1));
-                        break;
-                    case Key.Down:
-                        HandleBottom(_thumbCenter, new DragDeltaEventArgs(0, -1));
-                        HandleTop(_thumbCenter, new DragDeltaEventArgs(0, 1));
-                        break;
-                    case Key.Left:
-                        HandleRight(_thumbCenter, new DragDeltaEventArgs(-1, 0));
-                        HandleLeft(_thumbCenter, new DragDeltaEventArgs(1, 0));
-                        break;
-                    case Key.Right:
-                        HandleRight(_thumbCenter, new DragDeltaEventArgs(1, 0));
-                        HandleLeft(_thumbCenter, new DragDeltaEventArgs(-1, 0));
-                        break;
-                }
-
-                return;
-            }
-
-            //If the Shift key is pressed, the sizing mode is enabled (bottom right).
-            if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
-            {
-                switch (e.Key)
-                {
-                    case Key.Up:
-                        HandleBottom(_thumbCenter, new DragDeltaEventArgs(0, -1));
-                        break;
-                    case Key.Down:
-                        HandleBottom(_thumbCenter, new DragDeltaEventArgs(0, 1));
-                        break;
-                    case Key.Left:
-                        HandleRight(_thumbCenter, new DragDeltaEventArgs(-1, 0));
-                        break;
-                    case Key.Right:
-                        HandleRight(_thumbCenter, new DragDeltaEventArgs(1, 0));
-                        break;
-                }
-
-                return;
-            }
-
-            //If the Control key is pressed, the sizing mode is enabled (top left).
-            if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
-            {
-                switch (e.Key)
-                {
-                    case Key.Up:
-                        HandleTop(_thumbCenter, new DragDeltaEventArgs(0, -1));
-                        break;
-                    case Key.Down:
-                        HandleTop(_thumbCenter, new DragDeltaEventArgs(0, 1));
-                        break;
-                    case Key.Left:
-                        HandleLeft(_thumbCenter, new DragDeltaEventArgs(-1, 0));
-                        break;
-                    case Key.Right:
-                        HandleLeft(_thumbCenter, new DragDeltaEventArgs(1, 0));
-                        break;
-                }
-
-                return;
-            }
-
-            //If no other key is pressed, the movement mode is enabled.
-            switch (e.Key)
-            {
-                case Key.Up:
-                    HandleCenter(_thumbCenter, new DragDeltaEventArgs(0, -1));
-                    break;
-                case Key.Down:
-                    HandleCenter(_thumbCenter, new DragDeltaEventArgs(0, 1));
-                    break;
-                case Key.Left:
-                    HandleCenter(_thumbCenter, new DragDeltaEventArgs(-1, 0));
-                    break;
-                case Key.Right:
-                    HandleCenter(_thumbCenter, new DragDeltaEventArgs(1, 0));
-                    break;
-            }
         }
 
         #endregion
@@ -288,8 +198,6 @@ namespace ScreenToGif.Controls
 
             SetThumbs(_cropMask.Interior);
             RaiseEvent(new RoutedEventArgs(CropChangedEvent, this));
-
-            Keyboard.Focus(_cropMask);
         }
 
         //Cropping from the bottom-left.
@@ -379,8 +287,6 @@ namespace ScreenToGif.Controls
 
             SetThumbs(_cropMask.Interior);
             RaiseEvent(new RoutedEventArgs(CropChangedEvent, this));
-
-            Keyboard.Focus(_cropMask);
         }
 
         #endregion
@@ -512,7 +418,7 @@ namespace ScreenToGif.Controls
             thumb = new Thumb
             {
                 Cursor = cursor,
-                Style = (Style)FindResource("ScrollBar.Thumb"),
+                Style = (Style)FindResource("ScrollBarThumbVertical"),
                 Width = ThumbWidth,
                 Height = ThumbWidth
             };
@@ -552,9 +458,7 @@ namespace ScreenToGif.Controls
         protected override int VisualChildrenCount => _visualCollection.Count;
 
         protected override Visual GetVisualChild(int index)
-        {
-            return _visualCollection[index];
-        }
+        { return _visualCollection[index]; }
 
         #endregion
     }

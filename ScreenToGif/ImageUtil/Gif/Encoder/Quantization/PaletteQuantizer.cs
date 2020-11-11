@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
@@ -8,26 +9,19 @@ namespace ScreenToGif.ImageUtil.Gif.Encoder.Quantization
     public class PaletteQuantizer : Quantizer
     {
         ///<summary>
-        ///List of all colors in the palette
+        ///Construct the palette quantizer
         ///</summary>
-        protected List<Color> Colors;
-
-
-        ///<summary>
-        ///Construct the palette quantizer.
-        ///</summary>
-        ///<param name="palette">The color palette to quantize to.</param>
+        ///<param name="palette">The color palette to quantize to</param>
         ///<remarks>
-        ///This quantization method only requires a single quantization step when a palette is provided.
+        ///Palette quantization only requires a single quantization step
         ///</remarks>
-        public PaletteQuantizer(ArrayList palette = null) : base(palette != null)
+        public PaletteQuantizer(ArrayList palette) : base(true)
         {
-            if (palette == null)
-                return;
+            _colorMap = new Hashtable();
 
-            Colors = new List<Color>(palette.Cast<Color>());
+            Colors = new Color[palette.Count];
+            palette.CopyTo(Colors);
         }
-
 
         ///<summary>
         ///Override this to process the pixel in the second pass of the algorithm.
@@ -37,30 +31,61 @@ namespace ScreenToGif.ImageUtil.Gif.Encoder.Quantization
         protected override byte QuantizePixel(Color pixel)
         {
             byte colorIndex = 0;
-            var leastDistance = int.MaxValue;
+            var colorHash = BitConverter.ToInt32(new[] { pixel.A, pixel.R, pixel.G, pixel.B }, 0);
 
-            //Loop through the entire palette, looking for the closest color match.
-            for (var index = 0; index < ColorTable.Count; index++)
+            //Check if the color is in the lookup table.
+            if (_colorMap.ContainsKey(colorHash))
+                colorIndex = (byte)_colorMap[colorHash];
+            else
             {
-                var paletteColor = ColorTable[index];
-
-                var redDistance = paletteColor.R - pixel.R;
-                var greenDistance = paletteColor.G - pixel.G;
-                var blueDistance = paletteColor.B - pixel.B;
-
-                var distance = (redDistance * redDistance) +
-                               (greenDistance * greenDistance) +
-                               (blueDistance * blueDistance);
-
-                if (distance < leastDistance)
+                //Not found - loop through the palette and find the nearest match.
+                //Firstly check the alpha value - if 0, lookup the transparent color.
+                if (0 == pixel.A)
                 {
-                    colorIndex = (byte)index;
-                    leastDistance = distance;
+                    //Transparent. Lookup the first color with an alpha value of 0.
+                    for (var index = 0; index < Colors.Length; index++)
+                    {
+                        if (0 != Colors[index].A) continue;
 
-                    //And if it's an exact match, exit the loop.
-                    if (0 == distance)
+                        colorIndex = (byte)index;
                         break;
+                    }
                 }
+                else
+                {
+                    //Not transparent...
+                    var leastDistance = int.MaxValue;
+                    int red = pixel.R;
+                    int green = pixel.G;
+                    int blue = pixel.B;
+
+                    //Loop through the entire palette, looking for the closest color match
+                    for (var index = 0; index < Colors.Length; index++)
+                    {
+                        var paletteColor = Colors[index];
+
+                        var redDistance = paletteColor.R - red;
+                        var greenDistance = paletteColor.G - green;
+                        var blueDistance = paletteColor.B - blue;
+
+                        var distance = (redDistance * redDistance) +
+                                       (greenDistance * greenDistance) +
+                                       (blueDistance * blueDistance);
+
+                        if (distance < leastDistance)
+                        {
+                            colorIndex = (byte)index;
+                            leastDistance = distance;
+
+                            //And if it's an exact match, exit the loop.
+                            if (0 == distance)
+                                break;
+                        }
+                    }
+                }
+
+                //Now I have the color, pop it into the hashtable for next time.
+                _colorMap.Add(colorHash, colorIndex);
             }
 
             return colorIndex;
@@ -70,9 +95,19 @@ namespace ScreenToGif.ImageUtil.Gif.Encoder.Quantization
         ///Retrieve the palette for the quantized image
         ///</summary>
         ///<returns>The new color palette</returns>
-        internal override List<Color> BuildPalette()
+        protected override List<Color> GetPalette()
         {
-            return Colors;
+            return Colors.ToList();
         }
+
+        ///<summary>
+        ///Lookup table for colors
+        ///</summary>
+        private readonly Hashtable _colorMap;
+
+        ///<summary>
+        ///List of all colors in the palette
+        ///</summary>
+        protected Color[] Colors;
     }
 }

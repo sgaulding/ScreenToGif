@@ -12,10 +12,12 @@ namespace ScreenToGif.Util.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(value is bool boolean))
+            var boolean = value as bool?;
+
+            if (!boolean.HasValue)
                 return DependencyProperty.UnsetValue;
 
-            return boolean ? 0 : 1;
+            return boolean.Value ? 0 : 1;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

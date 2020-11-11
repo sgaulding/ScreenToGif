@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Microsoft.Win32;
+using ScreenToGif.FileWriters;
 
 namespace ScreenToGif.Util
 {
@@ -81,7 +82,7 @@ namespace ScreenToGif.Util
 
                     return Color.FromArgb(255, (byte)r, (byte)g, (byte)b);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     return Color.FromArgb(255, 0, 0, 0);
                 }
@@ -138,13 +139,11 @@ namespace ScreenToGif.Util
 
                 #region Set the background to transparent from both the WPF and Win32 perspectives
 
-                var brush = window.TryFindResource("Panel.Background.Level3") as SolidColorBrush ?? new SolidColorBrush(Color.FromArgb(255, 241, 241, 241));
-
-                window.Background = brush;
+                window.Background = new SolidColorBrush(Color.FromArgb(255, 241, 241, 241));
                 var hwndSource = HwndSource.FromHwnd(hwnd);
 
                 if (hwndSource?.CompositionTarget != null)
-                    hwndSource.CompositionTarget.BackgroundColor = brush.Color;
+                    hwndSource.CompositionTarget.BackgroundColor = Color.FromArgb(255, 241, 241, 241);
 
                 #endregion
 

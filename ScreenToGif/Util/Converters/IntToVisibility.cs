@@ -12,7 +12,8 @@ namespace ScreenToGif.Util.Converters
             var number = value as int?;
             var param = parameter as string;
 
-            if (!number.HasValue || string.IsNullOrWhiteSpace(param) || !int.TryParse(param, out var number2))
+            var number2 = 0;
+            if (!number.HasValue || string.IsNullOrWhiteSpace(param) || !int.TryParse(param, out number2))
                 return Visibility.Collapsed;
 
             return Equals(number, number2) ? Visibility.Visible : Visibility.Collapsed;

@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Media.Imaging;
+using ScreenToGif.Util;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 namespace ScreenToGif.ImageUtil.Video
@@ -88,13 +89,13 @@ namespace ScreenToGif.ImageUtil.Video
                 var aviStreamInfo = new AVISTREAMINFOW
                 {
                     fccType = GetFourCc("vids"),
-                    fccHandler = GetFourCc("CVID"), //CVID// 808810089, //IV50 //'DIB '//MJPG
+                    fccHandler = GetFourCc("CVID"), // 808810089, //IV50
                     dwScale = 1,
                     dwRate = (uint)frameRate,
                     dwSuggestedBufferSize = (uint)(_height * _stride),
                     dwQuality = quality, //-1 default 0xffffffff, 0 to 10.000
 
-                    rcFrame = new Util.Native.Rect
+                    rcFrame = new Native.Rect
                     {
                         Bottom = _height,
                         Right = _width
@@ -143,8 +144,7 @@ namespace ScreenToGif.ImageUtil.Video
                     biHeight = _height,
                     biPlanes = 1,
                     biBitCount = 24,
-                    biSizeImage = (uint)(_stride * _height),
-                    biCompression = 0 //BI_RGB
+                    biSizeImage = (uint)(_stride * _height)
                 };
 
                 rv = AVIStreamSetFormat(_compStream, 0, ref streamFormat, 40);
@@ -154,7 +154,7 @@ namespace ScreenToGif.ImageUtil.Video
             }
             catch
             {
-                //Clean up.
+                // Clean up
                 Dispose(false);
 
                 try
@@ -363,7 +363,7 @@ namespace ScreenToGif.ImageUtil.Video
             public uint dwSampleSize;
 
             /// <summary>Dimensions of the video destination rectangle.</summary>
-            public Util.Native.Rect rcFrame;
+            public Native.Rect rcFrame;
 
             /// <summary>Number of times the stream has been edited.</summary>
             public uint dwEditCount;
@@ -431,6 +431,7 @@ namespace ScreenToGif.ImageUtil.Video
             /// <summary>Specifies the number of color indexes that are required for displaying the bitmap.</summary>
             public uint biClrImportant;
         }
+
 
         /// <summary>Open mode value for AVIs to create and write to the file.</summary>
         private const int AVI_OPEN_MODE_CREATEWRITE = 0x00001000 | 0x00000001;
@@ -543,7 +544,9 @@ namespace ScreenToGif.ImageUtil.Video
             UserAbort = 0x800440C6,
             Error = 0x800440C7
         }
-        
+
+
+
         #endregion
     }
 }

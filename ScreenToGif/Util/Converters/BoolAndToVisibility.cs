@@ -10,9 +10,6 @@ namespace ScreenToGif.Util.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values == null || values.Length == 0 || values.Any(a => a.GetType() != typeof(bool)))
-                return Visibility.Collapsed;
-
             return values.Cast<bool>().All(x => x) ? Visibility.Visible : Visibility.Collapsed;
         }
 

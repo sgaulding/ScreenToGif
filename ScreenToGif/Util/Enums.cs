@@ -1,33 +1,5 @@
-﻿using System;
-
-namespace ScreenToGif.Util
+﻿namespace ScreenToGif.Util
 {
-    /// <summary>
-    /// Determines the app's theme.
-    /// </summary>
-    public enum AppTheme
-    {
-        Light,
-        Medium,
-        Dark,
-        VeryDark,
-    }
-
-    /// <summary>
-    /// The direction in which the window should be resized.
-    /// </summary>
-    public enum ResizeDirection
-    {
-        Left = 1,
-        Right = 2,
-        Top = 3,
-        TopLeft = 4,
-        TopRight = 5,
-        Bottom = 6,
-        BottomLeft = 7,
-        BottomRight = 8
-    }
-
     /// <summary>
     /// Determines how the past bahaves.
     /// </summary>
@@ -121,37 +93,35 @@ namespace ScreenToGif.Util
         /// </summary>
         IncreaseDecreaseDelay = 7,
 
-        ScaleDelay = 8,
-
         /// <summary>
         /// Fade Transition Panel.
         /// </summary>
-        Fade = 9,
+        Fade = 8,
 
         /// <summary>
         /// Slide Transition Panel.
         /// </summary>
-        Slide = 10,
+        Slide = 9,
 
         /// <summary>
         /// Reduce Frame Count Panel.
         /// </summary>
-        ReduceFrames = 11,
+        ReduceFrames = 10,
 
         /// <summary>
         /// Load Recent Panel.
         /// </summary>
-        LoadRecent = 12,
+        LoadRecent = 11,
 
         /// <summary>
         /// Remove Duplicates Panel.
         /// </summary>
-        RemoveDuplicates = 13,
+        RemoveDuplicates = 12,
 
         /// <summary>
         /// Mouse Clicks Panel.
         /// </summary>
-        MouseClicks = 14,
+        MouseClicks = 13,
 
         /// <summary>
         /// Crop Panel.
@@ -179,44 +149,34 @@ namespace ScreenToGif.Util
         FreeDrawing = -5,
 
         /// <summary>
-        /// Shapes Panel.
-        /// </summary>
-        Shapes = -6,
-
-        /// <summary>
         /// Watermark Panel.
         /// </summary>
-        Watermark = -7,
+        Watermark = -6,
 
         /// <summary>
         /// Border Panel.
         /// </summary>
-        Border = -8,
+        Border = -7,
 
         /// <summary>
         /// Cinemagraph Panel.
         /// </summary>
-        Cinemagraph = -9,
+        Cinemagraph = -8,
 
         /// <summary>
         /// Progress Panel.
         /// </summary>
-        Progress = -10,
+        Progress = -9,
 
         /// <summary>
         /// Key Strokes Panel.
         /// </summary>
-        KeyStrokes = -11,
+        KeyStrokes = -10,
 
         /// <summary>
         /// Obfuscate Panel.
         /// </summary>
-        Obfuscate = -12,
-
-        /// <summary>
-        /// Shadow Panel.
-        /// </summary>
-        Shadow = -13,
+        Obfuscate = -11,
     }
 
     /// <summary>
@@ -249,53 +209,46 @@ namespace ScreenToGif.Util
     /// <summary>
     /// Stage status of the recording process.
     /// </summary>
-    [Flags]
     public enum Stage
     {
         /// <summary>
         /// Recording stopped, but selecting the region to record.
         /// </summary>
-        [Obsolete]
-        SelectingRegion = 0, //Removed later.
-
-
+        SelectingRegion = -1,
 
         /// <summary>
         /// Recording stopped.
         /// </summary>
-        Stopped = 1, //1 << 0, 0b_000001
+        Stopped = 0,
 
         /// <summary>
         /// Recording active.
         /// </summary>
-        Recording = 2, //1 << 1, 0b_000010
+        Recording = 1,
 
         /// <summary>
         /// Recording paused.
         /// </summary>
-        Paused = 4, //1 << 2, 0b_000100
+        Paused = 2,
 
         /// <summary>
         /// Pre start countdown active.
         /// </summary>
-        PreStarting = 8, //1 << 3, 0b_001000
-
-        /// <summary>
-        /// The recording is being discarded.
-        /// </summary>
-        Discarding = 16, //1 << 4, 0b_010000
-
-
+        PreStarting = 3,
 
         /// <summary>
         /// Single shot mode.
         /// </summary>
-        [Obsolete]
-        Snapping = 32, //1 << 5, 0b_100000 //Remove later.
+        Snapping = 4,
+
+        /// <summary>
+        /// The recording is being discarded.
+        /// </summary>
+        Discarding = 5
     }
 
     /// <summary>
-    /// Encoding status.
+    /// EncoderListBox Item Status.
     /// </summary>
     public enum Status
     {
@@ -363,8 +316,7 @@ namespace ScreenToGif.Util
     public enum DelayChangeType
     {
         Override,
-        IncreaseDecrease,
-        Scale
+        IncreaseDecrease
     }
 
     /// <summary>
@@ -372,6 +324,7 @@ namespace ScreenToGif.Util
     /// </summary>
     public enum GifEncoderType
     {
+        Legacy,
         ScreenToGif,
         PaintNet,
         FFmpeg,
@@ -379,25 +332,14 @@ namespace ScreenToGif.Util
     }
 
     /// <summary>
-    /// Type of the apng encoder.
-    /// </summary>
-    public enum ApngEncoderType
-    {
-        ScreenToGif,
-        FFmpeg,
-    }
-
-    /// <summary>
     /// Type of color quantization methods of the gif encoder.
     /// </summary>
     public enum ColorQuantizationType
     {
-        Neural = 0,
-        Octree = 1,
-        MedianCut = 2,
-        Grayscale = 3,
-        MostUsed = 4,
-        Palette = 5,
+        Ordered,
+        NeuQuant,
+        Octree,
+        Grayscale,
     }
 
     /// <summary>
@@ -491,16 +433,6 @@ namespace ScreenToGif.Util
     }
 
     /// <summary>
-    /// Specifies the type of frame delay adjustment for the 'Reduce Framerate'.
-    /// </summary>
-    public enum ReduceDelayType
-    {
-        DontAdjust = 0,
-        Previous = 1,
-        Evenly = 2
-    }
-
-    /// <summary>
     /// Specifies the type of frame removal.
     /// </summary>
     public enum DuplicatesRemovalType
@@ -531,7 +463,7 @@ namespace ScreenToGif.Util
         IconLeftMouseUp,
         IconMiddleMouseDown,
         IconMiddleMouseUp,
-        IconLeftDoubleClick
+        IconDoubleClick
     }
 
 
@@ -584,8 +516,8 @@ namespace ScreenToGif.Util
         None = 0,
         ImgurAnonymous = 1,
         Imgur = 2,
-        GfycatAnonymous = 3,
-        Gfycat = 4,
+        GyfcatAnonymous = 3,
+        Gyfcat = 4,
         Yandex = 5,
     }
 
@@ -608,74 +540,5 @@ namespace ScreenToGif.Util
         WebcamRecorder = 2,
         BoardRecorder = 3,
         Editor = 4,
-    }
-
-    /// <summary>
-    /// The types of drawings.
-    /// </summary>
-    public enum DrawingModeType
-    {
-        None = 0,
-        Ink,
-        Select,
-        EraseByPoint,
-        EraseByObject,
-        Rectangle,
-        Circle,
-        Triangle,
-        Arrow,
-        Baloon,
-    }
-
-    /// <summary>
-    /// Delay update type.
-    /// </summary>
-    public enum DelayUpdateType
-    {
-        Override = 0,
-        IncreaseDecrease = 1,
-        Scale = 2,
-    }
-
-    /// <summary>
-    /// Type of capture frequency mode for the screen recorder.
-    /// </summary>
-    public enum CaptureFrequency
-    {
-        Manual,
-        Interaction,
-        PerSecond,
-        PerMinute,
-        PerHour
-    }
-
-    public enum ObfuscationMode
-    {
-        Pixelation,
-        Blur,
-        Darken,
-        Lighten
-    }
-
-    /// <summary>
-    /// Scaling quality options for resizing
-    /// This enum is a subset of <seealso cref="System.Windows.Media.BitmapScalingMode"/>.
-    /// It is used to expose this enum to the Editor and choose which options are availabe
-    /// </summary>
-    public enum ScalingMethod
-    {
-        Fant = System.Windows.Media.BitmapScalingMode.Fant,
-        Linear = System.Windows.Media.BitmapScalingMode.Linear,
-        NearestNeighbor = System.Windows.Media.BitmapScalingMode.NearestNeighbor
-    }
-
-    /// <summary>
-    /// The type of capture area selection.
-    /// </summary>
-    public enum ModeType
-    {
-        Region = 0,
-        Window = 1,
-        Fullscreen = 2
     }
 }

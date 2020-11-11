@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace ScreenToGif.Controls
 {
@@ -9,17 +8,17 @@ namespace ScreenToGif.Controls
     {
         #region Dependency Property
 
-        public static readonly DependencyProperty IsDarkProperty = DependencyProperty.Register(nameof(IsDark), typeof(bool), typeof(AwareTabItem),
+        public static readonly DependencyProperty IsDarkProperty = DependencyProperty.Register("IsDark", typeof(bool), typeof(AwareTabItem),
             new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender, OnPropertyChanged));
 
-        public static readonly DependencyProperty ShowBackgroundProperty = DependencyProperty.Register(nameof(ShowBackground), typeof(bool), typeof(AwareTabItem),
+        public static readonly DependencyProperty ShowBackgroundProperty = DependencyProperty.Register("ShowBackground", typeof(bool), typeof(AwareTabItem),
             new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender, ShowBackground_OnPropertyChanged));
 
-        public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Brush), typeof(AwareTabItem));
+        public static readonly DependencyProperty ImageProperty = DependencyProperty.Register("Image", typeof(UIElement), typeof(AwareTabItem), new FrameworkPropertyMetadata());
 
         #endregion
 
-        #region Property accessors
+        #region Property Accessor
 
         /// <summary>
         /// True if the titlebar color is dark.
@@ -42,13 +41,13 @@ namespace ScreenToGif.Controls
         }
 
         /// <summary>
-        /// The icon of the tab.
+        /// The Image of the tab.
         /// </summary>
-        [Description("The icon of the tab.")]
-        public Brush Icon
+        [Description("The Image of the tab.")]
+        public UIElement Image
         {
-            get => (Brush)GetValue(IconProperty);
-            set => SetCurrentValue(IconProperty, value);
+            get => (UIElement)GetValue(ImageProperty);
+            set => SetCurrentValue(ImageProperty, value);
         }
 
         #endregion

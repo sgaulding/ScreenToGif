@@ -3,81 +3,36 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Input;
-using System.Windows.Media;
+using ScreenToGif.Util;
 
 namespace ScreenToGif.Controls
 {
-    public class SplitButton : ItemsControl
+    /// <inheritdoc />
+    /// <summary>
+    /// A Menu/ComboBox with a default button.
+    /// </summary>
+    public class SplitButton : ImageMenuItem
     {
         #region Variables
 
-        private ExtendedButton _internalButton;
+        private Grid _internalGrid;
         private Popup _mainPopup;
+        private StackPanel _innerStackPanel;
 
-        private ExtendedMenuItem _current;
+        private ImageMenuItem _current;
 
         #endregion
 
         #region Dependency Properties
 
-        public static readonly DependencyProperty TextProperty = DependencyProperty.Register(nameof(Text), typeof(string), typeof(SplitButton), new PropertyMetadata(""));
-
-        public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Brush), typeof(SplitButton));
-
-        public static readonly DependencyProperty ContentHeightProperty = DependencyProperty.Register(nameof(ContentHeight), typeof(double), typeof(SplitButton), new FrameworkPropertyMetadata(16d));
-
-        public static readonly DependencyProperty ContentWidthProperty = DependencyProperty.Register(nameof(ContentWidth), typeof(double), typeof(SplitButton), new FrameworkPropertyMetadata(16d));
-
-        public static readonly DependencyProperty SelectedIndexProperty = DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(SplitButton), new FrameworkPropertyMetadata(0,
+        public static readonly DependencyProperty SelectedIndexProperty = DependencyProperty.Register("SelectedIndex", typeof(int), typeof(SplitButton), new FrameworkPropertyMetadata(0,
             FrameworkPropertyMetadataOptions.AffectsRender, SelectedIndex_ChangedCallback));
 
-        public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(SplitButton), new FrameworkPropertyMetadata(null));
-        
-        public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(nameof(CommandParameter), typeof(object), typeof(SplitButton), new FrameworkPropertyMetadata(null));
-
-        public static readonly DependencyProperty TextWrappingProperty = DependencyProperty.Register(nameof(TextWrapping), typeof(TextWrapping), typeof(SplitButton), new FrameworkPropertyMetadata(TextWrapping.NoWrap,
-            FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(SplitButton), new FrameworkPropertyMetadata(""));
 
         #endregion
 
         #region Properties
-
-        public string Text
-        {
-            get => (string)GetValue(TextProperty);
-            set => SetValue(TextProperty, value);
-        }
-
-        /// <summary>
-        /// The icon of the button as a Brush
-        /// </summary>
-        [Description("The icon of the button as a Brush.")]
-        public Brush Icon
-        {
-            get => (Brush)GetValue(IconProperty);
-            set => SetCurrentValue(IconProperty, value);
-        }
-
-        /// <summary>
-        /// The height of the button content.
-        /// </summary>
-        [Description("The height of the button content."), Category("Common")]
-        public double ContentHeight
-        {
-            get => (double)GetValue(ContentHeightProperty);
-            set => SetCurrentValue(ContentHeightProperty, value);
-        }
-
-        /// <summary>
-        /// The width of the button content.
-        /// </summary>
-        [Description("The width of the button content."), Category("Common")]
-        public double ContentWidth
-        {
-            get => (double)GetValue(ContentWidthProperty);
-            set => SetCurrentValue(ContentWidthProperty, value);
-        }
 
         /// <summary>
         /// The index of selected item.
@@ -90,25 +45,19 @@ namespace ScreenToGif.Controls
         }
 
         /// <summary>
-        /// Gets or sets the command associated with the menu item.
+        /// The text of the button.
         /// </summary>
-        [Category("Action")]
-        public ICommand Command
+        [Description("The text of the button."), Category("Common")]
+        public string Text
         {
-            get => (ICommand) GetValue(CommandProperty);
-            set => SetValue(CommandProperty, value);
+            get => (string)GetValue(TextProperty);
+            set => SetCurrentValue(TextProperty, value);
         }
 
         /// <summary>
-        /// Gets or sets the parameter to pass to the <see cref="Command"/> property.
+        /// The TextWrapping property controls whether or not text wraps 
+        /// when it reaches the flow edge of its containing block box. 
         /// </summary>
-        [Category("Action")]
-        public object CommandParameter
-        {
-            get => GetValue(CommandParameterProperty);
-            set => SetValue(CommandParameterProperty, value);
-        }
-
         public TextWrapping TextWrapping
         {
             get => (TextWrapping)GetValue(TextWrappingProperty);
@@ -116,7 +65,6 @@ namespace ScreenToGif.Controls
         }
 
         #endregion
-
 
         static SplitButton()
         {
@@ -127,37 +75,46 @@ namespace ScreenToGif.Controls
         {
             base.OnApplyTemplate();
 
-            _internalButton = Template.FindName("ActionButton", this) as ExtendedButton;
+            _internalGrid = Template.FindName("InternalGrid", this) as Grid;
             _mainPopup = Template.FindName("Popup", this) as Popup;
+            _innerStackPanel = Template.FindName("InnerStackPanel", this) as StackPanel;
+
+            if (_internalGrid == null)
+                return;
+
+            _internalGrid.MouseDown += OnClick;
 
             PrepareMainAction(this);
 
-            //Raises the click event.
-            _internalButton.Click += (sender, args) => _current?.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
-
             //Close on click.
-            foreach (var item in Items.OfType<ExtendedMenuItem>().ToList())
+            foreach (var item in _innerStackPanel.Children.OfType<ImageMenuItem>().ToList())
                 item.Click += (sender, args) =>
                 {
                     _mainPopup.IsOpen = false;
 
-                    if (!(sender is ExtendedMenuItem menu))
-                        return;
+                    if (sender is ImageMenuItem menu)
+                    {
+                        var index = _innerStackPanel.Children.IndexOf(menu);
 
-                    var index = Items.OfType<ExtendedMenuItem>().Where(w => (w.Tag as string) != "I").ToList().IndexOf(menu);
-
-                    if (index != -1)
-                        SelectedIndex = index;
+                        if (index != -1)
+                            SelectedIndex = index;
+                    }
                 };
         }
 
-
         private static void SelectedIndex_ChangedCallback(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            if (!(o is SplitButton split) || !split.IsLoaded)
+            if (!(o is SplitButton split) || split._innerStackPanel == null)
                 return;
 
             split.PrepareMainAction(split);
+        }
+
+        private void OnClick(object sender, RoutedEventArgs e)
+        {
+            Command?.Execute(null);
+
+            _current?.RaiseEvent(new RoutedEventArgs(ImageMenuItem.ClickEvent));
         }
 
         private void PrepareMainAction(SplitButton split)
@@ -165,8 +122,7 @@ namespace ScreenToGif.Controls
             if (split.SelectedIndex < 0)
                 return;
 
-            //Ignore children with the Tag == "I".
-            var list = split.Items.OfType<ExtendedMenuItem>().Where(w => (w.Tag as string) != "I").ToList();
+            var list = split._innerStackPanel.Children.OfType<ImageMenuItem>().ToList();
 
             if (split.SelectedIndex > list.Count - 1)
             {
@@ -174,15 +130,11 @@ namespace ScreenToGif.Controls
                 return;
             }
 
-            //I'm using the Tag property to store the resource ID.
-            if (list[split.SelectedIndex].Tag is string reference)
-                split.SetResourceReference(TextProperty, reference);
-            else
-                split.Text = list[split.SelectedIndex].Header as string;
-
-            split.Icon = list[split.SelectedIndex].Icon;
+            split.Image = list[split.SelectedIndex].Image.XamlClone();
+            split.Text = list[split.SelectedIndex].Header as string;
             split.Command = list[split.SelectedIndex].Command;
-            
+            _internalGrid.ToolTip = list[split.SelectedIndex].Header;
+
             _current = list[split.SelectedIndex];
         }
     }

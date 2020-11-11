@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Windows;
-using System.Windows.Input;
+﻿using System.Windows;
 using ScreenToGif.Model;
 using ScreenToGif.Util;
 
@@ -11,8 +9,7 @@ namespace ScreenToGif.Controls
     /// </summary>
     public class RecorderWindow : Window
     {
-        public static readonly DependencyProperty StageProperty = DependencyProperty.Register(nameof(Stage), typeof(Stage), typeof(RecorderWindow), new FrameworkPropertyMetadata(Stage.Stopped));
-        public static readonly DependencyProperty FrameCountProperty = DependencyProperty.Register(nameof(FrameCount), typeof(int), typeof(RecorderWindow), new FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty StageProperty = DependencyProperty.Register("Stage", typeof(Stage), typeof(RecorderWindow), new FrameworkPropertyMetadata(Stage.Stopped));
 
         /// <summary>
         /// The actual stage of the recorder.
@@ -20,21 +17,7 @@ namespace ScreenToGif.Controls
         public Stage Stage
         {
             get => (Stage)GetValue(StageProperty);
-            set
-            {
-                SetValue(StageProperty, value);
-                CommandManager.InvalidateRequerySuggested();
-            }
-        }
-
-        /// <summary>
-        /// The frame count of the current recording.
-        /// </summary>
-        [Bindable(true), Category("Common"), Description("The frame count of the current recording.")]
-        public int FrameCount
-        {
-            get => (int)GetValue(FrameCountProperty);
-            set => SetValue(FrameCountProperty, value);
+            set => SetValue(StageProperty, value);
         }
 
         /// <summary>

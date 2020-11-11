@@ -23,7 +23,7 @@ namespace ScreenToGif.Windows.Other
         /// <summary>
         /// The current list of frames.
         /// </summary>
-        public List<FrameInfo> CurrentList { get; set; }
+        public List<FrameInfo> ActualList { get; set; }
         private List<FrameInfo> NewList { get; set; }
 
         private bool _isRunning;
@@ -35,32 +35,41 @@ namespace ScreenToGif.Windows.Other
         private double _zoom = 1;
         UIElement _selectedElement = null;
 
-        private double _leftWidth = 0;
-        private double _leftHeight = 0;
-
-        private double _rightWidth = 0;
-        private double _rightHeight = 0;
-
         #endregion
 
+        #region Contructors
 
         /// <summary>
         /// Default contructor.
         /// </summary>
-        /// <param name="currentList">The current list.</param>
+        /// <param name="actualList">The current list.</param>
         /// <param name="newList">The list to be inserted.</param>
         /// <param name="insertAt">The index to insert the list.</param>
-        public Insert(List<FrameInfo> currentList, List<FrameInfo> newList, int insertAt)
+        public Insert(List<FrameInfo> actualList, List<FrameInfo> newList, int insertAt)
         {
             InitializeComponent();
 
-            CurrentList = currentList;
+            var left = newList[0].Path.SourceFrom();
+            var right = actualList[0].Path.SourceFrom();
+
+            //Left: New, Right: Current
+            LeftImage.Source = left;
+            RightImage.Source = right;
+
+            LeftImage.Width = left.Width;
+            LeftImage.Height = left.Height; //Pixel
+
+            RightImage.Width = right.Width;
+            RightImage.Height = right.Height;
+
+            ActualList = actualList;
             NewList = newList;
             _insertIndex = insertAt;
 
             FrameNumberLabel.Content = insertAt;
         }
 
+        #endregion
 
         #region Mouse Events
 
@@ -69,15 +78,11 @@ namespace ScreenToGif.Windows.Other
         /// </summary>
         private void Unselect_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (_selectedElement == null)
-                return;
-
-            var adorner = _adornerLayer.GetAdorners(_selectedElement)?.FirstOrDefault();
-
-            if (adorner != null)
-                _adornerLayer.Remove(adorner);
-
-            _selectedElement = null;
+            if (_selectedElement != null)
+            {
+                _adornerLayer.Remove(_adornerLayer.GetAdorners(_selectedElement).FirstOrDefault());
+                _selectedElement = null;
+            }
         }
 
         /// <summary>
@@ -95,15 +100,18 @@ namespace ScreenToGif.Windows.Other
             {
                 var adornerList = _adornerLayer.GetAdorners(_selectedElement);
 
-                var adorner = adornerList?.OfType<ResizingAdorner>().FirstOrDefault();
-
-                if (adorner != null)
+                if (adornerList != null)
                 {
-                    adorner.Destroy();
+                    var adorner = adornerList.OfType<ResizingAdorner>().FirstOrDefault();
 
-                    //Remove the adorner from the selected element
-                    _adornerLayer.Remove(adorner);
-                    _selectedElement = null;
+                    if (adorner != null)
+                    {
+                        adorner.Destroy();
+
+                        //Remove the adorner from the selected element
+                        _adornerLayer.Remove(adorner);
+                        _selectedElement = null;
+                    }
                 }
             }
 
@@ -116,7 +124,7 @@ namespace ScreenToGif.Windows.Other
             if (_selectedElement != null)
             {
                 _adornerLayer = AdornerLayer.GetAdornerLayer(_selectedElement);
-                _adornerLayer?.Add(new ResizingAdorner(_selectedElement, _selectedElement is Image, ContentGrid, e.GetPosition(ContentGrid)));
+                _adornerLayer.Add(new ResizingAdorner(_selectedElement, _selectedElement is Image, ContentGrid, e.GetPosition(ContentGrid)));
             }
 
             #endregion
@@ -159,8 +167,7 @@ namespace ScreenToGif.Windows.Other
 
         private void ScrollViewer_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (!(sender is ScrollViewer scroller))
-                return;
+            var scroller = sender as ScrollViewer;
 
             switch (Keyboard.Modifiers)
             {
@@ -203,6 +210,7 @@ namespace ScreenToGif.Windows.Other
 
                     break;
             }
+
         }
 
         private void ScrollViewer_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -214,8 +222,8 @@ namespace ScreenToGif.Windows.Other
 
         private void ResetLeftButton_Click(object sender, RoutedEventArgs e)
         {
-            LeftImage.Width = _leftWidth;
-            LeftImage.Height = _leftHeight;
+            LeftImage.Width = NewList[0].Path.SourceFrom().Width;
+            LeftImage.Height = NewList[0].Path.SourceFrom().Height;
 
             Canvas.SetTop(LeftImage, 0);
             Canvas.SetLeft(LeftImage, 0);
@@ -223,8 +231,8 @@ namespace ScreenToGif.Windows.Other
 
         private void ResetRightButton_Click(object sender, RoutedEventArgs e)
         {
-            RightImage.Width = _rightWidth;
-            RightImage.Height = _rightHeight;
+            RightImage.Width = ActualList[0].Path.SourceFrom().Width;
+            RightImage.Height = ActualList[0].Path.SourceFrom().Height;
 
             Canvas.SetTop(RightImage, 0);
             Canvas.SetLeft(RightImage, 0);
@@ -252,7 +260,7 @@ namespace ScreenToGif.Windows.Other
 
             #region Set as Maximized if the window gets big enough
 
-            var size = Util.Native.ScreenSizeFromWindow(this);
+            var size = Native.ScreenSizeFromWindow(this);
 
             if (size.Height - Height < 200 || size.Width - Width < 200)
                 WindowState = WindowState.Maximized;
@@ -262,40 +270,14 @@ namespace ScreenToGif.Windows.Other
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            #region Size check
+            #region Size Diff
 
-            var left = NewList[0].Path.SourceFrom();
-            var right = CurrentList[0].Path.SourceFrom();
-
-            //Left: New, Right: Current
-            LeftImage.Source = left;
-            RightImage.Source = right;
-
-            //The image should be displayed based on the scale of the screen.
-            var scaleLeft = Math.Round(left.DpiX / 96d, 2);
-            var scaleRight = Math.Round(right.DpiX / 96d, 2);
-            var scale = this.Scale();
-
-            var scaleDiffLeft = Math.Round(scale / scaleLeft, 2);
-            var scaleDiffRight = Math.Round(scale / scaleRight, 2);
-
-            LeftImage.Width = _leftWidth = left.Width / scaleDiffLeft;
-            LeftImage.Height = _leftHeight = left.Height / scaleDiffLeft;
-
-            RightImage.Width = _rightWidth = right.Width / scaleDiffRight;
-            RightImage.Height = _rightHeight = right.Height / scaleDiffRight;
+            if (Math.Abs(LeftImage.ActualWidth - RightImage.ActualWidth) > 0 || Math.Abs(LeftImage.ActualHeight - RightImage.ActualHeight) > 0)
+                StatusBand.Warning(FindResource("InsertFrames.DifferentSizes") as string);
 
             #endregion
 
-            #region Initial sizing
-
-            LeftImage.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            LeftImage.Arrange(new Rect(new Point(0,0), LeftImage.DesiredSize));
-            RightImage.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            RightImage.Arrange(new Rect(new Point(0, 0), RightImage.DesiredSize));
-
-            if (Math.Abs(LeftImage.ActualWidth - RightImage.ActualWidth) > 0.01 || Math.Abs(LeftImage.ActualHeight - RightImage.ActualHeight) > 0.01)
-                StatusBand.Warning(LocalizationHelper.Get("S.InsertFrames.DifferentSizes"));
+            #region Initial Sizing
 
             LeftCanvas.Width = LeftImage.ActualWidth;
             LeftCanvas.Height = LeftImage.ActualHeight;
@@ -345,7 +327,7 @@ namespace ScreenToGif.Windows.Other
             #endregion
 
             _insertDel = InsertFrames;
-            _insertDel.BeginInvoke(AfterRadioButton.IsChecked == true, this.Scale(), InsertCallback, null);
+            _insertDel.BeginInvoke(AfterRadioButton.IsChecked.Value, InsertCallback, null);
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -367,41 +349,35 @@ namespace ScreenToGif.Windows.Other
 
         #region Async Insert
 
-        private delegate bool InsertDelegate(bool after, double screenScale);
+        private delegate bool InsertDelegate(bool after);
 
         private InsertDelegate _insertDel;
 
-        private bool InsertFrames(bool after, double screenScale)
+        private bool InsertFrames(bool after)
         {
             try
             {
-                //Sizes.
-                var left = NewList[0].Path.SourceFrom();
-                var right = CurrentList[0].Path.SourceFrom();
+                #region Actual List
 
-                //The image should be displayed based on the scale of the project.
-                var scaleLeft = left.DpiX / 96d;
-                var scaleRight = right.DpiX / 96d; //Math.Round(right.DpiX / 96d, 2);
-
-                var scaleDiffLeft = screenScale / scaleLeft;
-                var scaleDiffRight = screenScale / scaleRight;
-
-                #region Current frames
+                var actualFrame = ActualList[0].Path.SourceFrom();
+                double oldWidth = actualFrame.Width;
+                double oldHeight = actualFrame.Height;
+                //var scale = Math.Round(actualFrame.DpiX, MidpointRounding.AwayFromZero) / 96d;
 
                 //If the canvas size changed.
-                if (Math.Abs(RightCanvas.ActualWidth - _rightWidth) > 0.1 || Math.Abs(RightCanvas.ActualHeight - _rightHeight) > 0.1 ||
-                    Math.Abs(RightImage.ActualWidth - _rightWidth) > 0.1 || Math.Abs(RightImage.ActualHeight - _rightHeight) > 0.1)
+                if (Math.Abs(RightCanvas.ActualWidth - oldWidth) > 0.1 || Math.Abs(RightCanvas.ActualHeight - oldHeight) > 0.1 ||
+                    Math.Abs(RightImage.ActualWidth - oldWidth) > 0.1 || Math.Abs(RightImage.ActualHeight - oldHeight) > 0.1)
                 {
-                    StartProgress(CurrentList.Count, FindResource("S.Editor.UpdatingFrames").ToString());
+                    StartProgress(ActualList.Count, FindResource("Editor.UpdatingFrames").ToString());
 
                     //Saves the state before resizing the images.
-                    ActionStack.SaveState(ActionStack.EditAction.ImageAndProperties, CurrentList, Util.Other.ListOfIndexes(0, CurrentList.Count));
+                    ActionStack.SaveState(ActionStack.EditAction.ImageAndProperties, ActualList, Util.Other.CreateIndexList2(0, ActualList.Count));
 
-                    foreach (var frameInfo in CurrentList)
+                    foreach (var frameInfo in ActualList)
                     {
                         #region Resize Images
 
-                        //Draws the images into a DrawingVisual component.
+                        // Draws the images into a DrawingVisual component
                         var drawingVisual = new DrawingVisual();
                         using (var context = drawingVisual.RenderOpen())
                         {
@@ -409,17 +385,20 @@ namespace ScreenToGif.Windows.Other
                             context.DrawRectangle(new SolidColorBrush(UserSettings.All.InsertFillColor), null,
                                 new Rect(new Point(0, 0), new Point(Math.Round(RightCanvas.ActualWidth, MidpointRounding.AwayFromZero), Math.Round(RightCanvas.ActualHeight, MidpointRounding.AwayFromZero))));
 
-                            var topPoint = Dispatcher.Invoke(() => Canvas.GetTop(RightImage)) * scaleDiffRight;
-                            var leftPoint = Dispatcher.Invoke(() => Canvas.GetLeft(RightImage)) * scaleDiffRight;
+                            var topPoint = Dispatcher.Invoke(() => Canvas.GetTop(RightImage));
+                            var leftPoint = Dispatcher.Invoke(() => Canvas.GetLeft(RightImage));
 
                             //The image.
-                            context.DrawImage(frameInfo.Path.SourceFrom(), new Rect(leftPoint, topPoint, RightImage.ActualWidth * scaleDiffRight, RightImage.ActualHeight * scaleDiffRight));
+                            context.DrawImage(frameInfo.Path.SourceFrom(), new Rect(leftPoint, topPoint, RightImage.ActualWidth, RightImage.ActualHeight));
+
                             //context.DrawText(new FormattedText("Hi!", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Segoe UI"), 32, Brushes.Black), new Point(0, 0));
                         }
 
-                        //Converts the Visual (DrawingVisual) into a BitmapSource.
-                        var bmp = new RenderTargetBitmap((int)Math.Round(RightCanvas.ActualWidth * screenScale, MidpointRounding.AwayFromZero),
-                            (int)Math.Round(RightCanvas.ActualHeight * screenScale, MidpointRounding.AwayFromZero), right.DpiX, right.DpiX, PixelFormats.Pbgra32);
+                        //var bmp = new RenderTargetBitmap((int)(RightCanvas.ActualWidth), (int)(RightCanvas.ActualHeight), actualFrame.DpiX, actualFrame.DpiX, PixelFormats.Pbgra32);
+
+                        // Converts the Visual (DrawingVisual) into a BitmapSource
+                        var bmp = new RenderTargetBitmap((int)Math.Round(RightCanvas.ActualWidth * (actualFrame.DpiX / 96d), MidpointRounding.AwayFromZero),
+                            (int)Math.Round(RightCanvas.ActualHeight * (actualFrame.DpiY / 96d), MidpointRounding.AwayFromZero), actualFrame.DpiX, actualFrame.DpiX, PixelFormats.Pbgra32);
                         bmp.Render(drawingVisual);
 
                         #endregion
@@ -430,7 +409,7 @@ namespace ScreenToGif.Windows.Other
                         var encoder = new PngBitmapEncoder();
                         encoder.Frames.Add(BitmapFrame.Create(bmp));
 
-                        //Saves the image into a file using the encoder
+                        // Saves the image into a file using the encoder
                         using (Stream stream = File.Create(frameInfo.Path))
                             encoder.Save(stream);
 
@@ -439,22 +418,27 @@ namespace ScreenToGif.Windows.Other
                         if (_isCancelled)
                             return false;
 
-                        UpdateProgress(CurrentList.IndexOf(frameInfo));
+                        UpdateProgress(ActualList.IndexOf(frameInfo));
                     }
                 }
 
                 #endregion
 
-                #region New frames
+                #region New List
 
-                StartProgress(CurrentList.Count, FindResource("S.Editor.ImportingFrames").ToString());
+                var newFrame = NewList[0].Path.SourceFrom();
+                oldWidth = newFrame.Width;
+                oldHeight = newFrame.Height;
+                //scale = Math.Round(newFrame.DpiX, MidpointRounding.AwayFromZero) / 96d;
 
-                var folder = Path.GetDirectoryName(CurrentList[0].Path);
+                StartProgress(ActualList.Count, FindResource("Editor.ImportingFrames").ToString());
+
+                var folder = Path.GetDirectoryName(ActualList[0].Path);
                 var insertFolder = Path.GetDirectoryName(NewList[0].Path);
 
                 //If the canvas size changed.
-                if (Math.Abs(LeftCanvas.ActualWidth - _leftWidth) > 0.1 || Math.Abs(LeftCanvas.ActualHeight - _leftHeight) > 0.1 ||
-                    Math.Abs(LeftImage.ActualWidth - _leftWidth) > 0.1 || Math.Abs(LeftImage.ActualHeight - _leftHeight) > 0.1 || Math.Abs(left.DpiX - right.DpiX) > 0.1)
+                if (Math.Abs(LeftCanvas.ActualWidth - oldWidth) > 0.1 || Math.Abs(LeftCanvas.ActualHeight - oldHeight) > 0.1 ||
+                    Math.Abs(LeftImage.ActualWidth - oldWidth) > 0.1 || Math.Abs(LeftImage.ActualHeight - oldHeight) > 0.1)
                 {
                     foreach (var frameInfo in NewList)
                     {
@@ -466,19 +450,20 @@ namespace ScreenToGif.Windows.Other
                         {
                             //The back canvas.
                             context.DrawRectangle(new SolidColorBrush(UserSettings.All.InsertFillColor), null,
-                                new Rect(new Point(0, 0), new Point(Math.Round(RightCanvas.ActualWidth * scaleDiffRight, MidpointRounding.AwayFromZero), 
-                                Math.Round(RightCanvas.ActualHeight * scaleDiffRight, MidpointRounding.AwayFromZero))));
+                                new Rect(new Point(0, 0), new Point(Math.Round(RightCanvas.ActualWidth, MidpointRounding.AwayFromZero), 
+                                    Math.Round(RightCanvas.ActualHeight, MidpointRounding.AwayFromZero))));
 
-                            var topPoint = Dispatcher.Invoke(() => Canvas.GetTop(LeftImage)) * scaleDiffRight;
-                            var leftPoint = Dispatcher.Invoke(() => Canvas.GetLeft(LeftImage)) * scaleDiffRight;
+                            var topPoint = Dispatcher.Invoke(() => Canvas.GetTop(LeftImage));
+                            var leftPoint = Dispatcher.Invoke(() => Canvas.GetLeft(LeftImage));
 
                             //The front image.
-                            context.DrawImage(frameInfo.Path.SourceFrom(), new Rect(leftPoint, topPoint, LeftImage.ActualWidth * scaleDiffRight, LeftImage.ActualHeight * scaleDiffRight)); // * scaleDiffLeft
+                            context.DrawImage(frameInfo.Path.SourceFrom(), new Rect(leftPoint, topPoint, LeftImage.ActualWidth, LeftImage.ActualHeight));
                         }
 
                         //Converts the Visual (DrawingVisual) into a BitmapSource. Using the actual frame dpi.
-                        var bmp = new RenderTargetBitmap((int)Math.Round(LeftCanvas.ActualWidth * screenScale, MidpointRounding.AwayFromZero),
-                            (int)Math.Round(LeftCanvas.ActualHeight * screenScale, MidpointRounding.AwayFromZero), right.DpiX, right.DpiX, PixelFormats.Pbgra32);
+                        //var bmp = new RenderTargetBitmap((int)(LeftCanvas.ActualWidth * scale), (int)(LeftCanvas.ActualHeight * scale), actualFrame.DpiX, actualFrame.DpiX, PixelFormats.Pbgra32);
+                        var bmp = new RenderTargetBitmap((int)Math.Round(LeftCanvas.ActualWidth * (newFrame.DpiX / 96d), MidpointRounding.AwayFromZero),
+                            (int)Math.Round(LeftCanvas.ActualHeight * (newFrame.DpiY / 96d), MidpointRounding.AwayFromZero), newFrame.DpiX, newFrame.DpiX, PixelFormats.Pbgra32);
                         bmp.Render(drawingVisual);
 
                         #endregion
@@ -513,7 +498,7 @@ namespace ScreenToGif.Windows.Other
                     {
                         #region Move
 
-                        var fileName = Path.Combine(folder, $"{_insertIndex}-{NewList.IndexOf(frameInfo)} {DateTime.Now:hh-mm-ss}.png");
+                        var fileName = Path.Combine(folder, $"{_insertIndex}-{NewList.IndexOf(frameInfo)} {DateTime.Now.ToString("hh-mm-ss")}.png");
 
                         File.Move(frameInfo.Path, fileName);
 
@@ -535,15 +520,15 @@ namespace ScreenToGif.Windows.Other
                 if (_isCancelled)
                     return false;
 
-                #region Merge the lists
+                #region Merge the Lists
 
                 if (after)
                     _insertIndex++;
 
-                //Saves the state before inserting the images. This was removed because it was causing a crash when applying undo twice.
-                //ActionStack.SaveState(ActionStack.EditAction.Add, _insertIndex, NewList.Count);
+                //Saves the state before inserting the images.
+                ActionStack.SaveState(ActionStack.EditAction.Add, _insertIndex, NewList.Count);
 
-                CurrentList.InsertRange(_insertIndex, NewList);
+                ActualList.InsertRange(_insertIndex, NewList);
 
                 #endregion
 
@@ -552,7 +537,7 @@ namespace ScreenToGif.Windows.Other
             catch (Exception ex)
             {
                 LogWriter.Log(ex, "Insert Error");
-                Dispatcher.Invoke(() => ErrorDialog.Ok("Insert Error", "Something Wrong Happened", ex.Message, ex));
+                Dispatcher.Invoke(() => Dialog.Ok("Insert Error", "Something Wrong Happened", ex.Message));
 
                 return false;
             }

@@ -3,7 +3,10 @@ using System.Windows.Input;
 
 namespace ScreenToGif.Windows.Other
 {
-    public partial class GoTo
+    /// <summary>
+    /// Interaction logic for GoTo.xaml
+    /// </summary>
+    public partial class GoTo : Window
     {
         #region Properties
 
@@ -22,7 +25,7 @@ namespace ScreenToGif.Windows.Other
 
         #region Events
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void GoTo_OnLoaded(object sender, RoutedEventArgs e)
         {
             GoToLabel.Content = string.Format(GoToLabel.Content.ToString(), Maximum);
             NumberIntegerUpDown.Maximum = Maximum;
@@ -40,7 +43,12 @@ namespace ScreenToGif.Windows.Other
         {
             DialogResult = false;
         }
-        
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+        }
+
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             Selected = NumberIntegerUpDown.Value;

@@ -8,18 +8,22 @@ namespace ScreenToGif.Controls
 {
     internal class CircularProgressBar : ProgressBar
     {
-        #region Variables and properties
+        #region Variables
 
         private Path _pathRoot;
         private PathFigure _pathFigure;
         private ArcSegment _arcSegment;
 
-        public static readonly DependencyProperty PercentageProperty = DependencyProperty.Register(nameof(Percentage), typeof(double), typeof(CircularProgressBar), new PropertyMetadata(OnPercentageChanged));
-        public static readonly DependencyProperty StrokeThicknessProperty = DependencyProperty.Register(nameof(StrokeThickness), typeof(double), typeof(CircularProgressBar), new PropertyMetadata(5D, OnPropertyChanged));
-        public static readonly DependencyProperty SegmentColorProperty = DependencyProperty.Register(nameof(SegmentColor), typeof(Brush), typeof(CircularProgressBar), new PropertyMetadata(Brushes.Red));
-        public static readonly DependencyProperty RadiusProperty = DependencyProperty.Register(nameof(Radius), typeof(double), typeof(CircularProgressBar), new PropertyMetadata(25D, OnPropertyChanged));
-        public static readonly DependencyProperty AngleProperty = DependencyProperty.Register(nameof(Angle), typeof(double), typeof(CircularProgressBar), new PropertyMetadata(120D, OnPropertyChanged));
-        public static readonly DependencyProperty IsInvertedProperty = DependencyProperty.Register(nameof(IsInverted), typeof(bool), typeof(CircularProgressBar), new PropertyMetadata(false, OnPropertyChanged));
+        public static readonly DependencyProperty PercentageProperty;
+        public static readonly DependencyProperty StrokeThicknessProperty;
+        public static readonly DependencyProperty SegmentColorProperty;
+        public static readonly DependencyProperty RadiusProperty;
+        public static readonly DependencyProperty AngleProperty;
+        public static readonly DependencyProperty IsInvertedProperty;
+
+        #endregion
+
+        #region Properties
 
         public double Radius
         {
@@ -62,6 +66,14 @@ namespace ScreenToGif.Controls
         static CircularProgressBar()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CircularProgressBar), new FrameworkPropertyMetadata(typeof(CircularProgressBar)));
+
+            PercentageProperty = DependencyProperty.Register("Percentage", typeof(double), typeof(CircularProgressBar), new PropertyMetadata(OnPercentageChanged));
+            StrokeThicknessProperty = DependencyProperty.Register("StrokeThickness", typeof(double), typeof(CircularProgressBar), new PropertyMetadata(5D, OnPropertyChanged));
+            SegmentColorProperty = DependencyProperty.Register("SegmentColor", typeof(Brush), typeof(CircularProgressBar), new PropertyMetadata(Brushes.Red));
+            RadiusProperty = DependencyProperty.Register("Radius", typeof(double), typeof(CircularProgressBar), new PropertyMetadata(25D, OnPropertyChanged));
+            AngleProperty = DependencyProperty.Register("Angle", typeof(double), typeof(CircularProgressBar), new PropertyMetadata(120D, OnPropertyChanged));
+
+            IsInvertedProperty = DependencyProperty.Register("IsInverted", typeof(bool), typeof(CircularProgressBar), new PropertyMetadata(false, OnPropertyChanged));
         }
 
         public override void OnApplyTemplate()
@@ -101,7 +113,9 @@ namespace ScreenToGif.Controls
 
         private static void OnPercentageChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
         {
-            if (sender is CircularProgressBar circle)
+            var circle = sender as CircularProgressBar;
+
+            if (circle != null)
                 circle.Angle = (circle.Percentage * 360) / 100;
         }
 
@@ -136,7 +150,7 @@ namespace ScreenToGif.Controls
             if (_pathFigure != null)
                 _pathFigure.StartPoint = startPoint;
 
-            if (Math.Abs(startPoint.X - Math.Round(endPoint.X)) < 0.001 && Math.Abs(startPoint.Y - Math.Round(endPoint.Y)) < 0.001)
+            if (startPoint.X == Math.Round(endPoint.X) && startPoint.Y == Math.Round(endPoint.Y))
                 endPoint.X -= 0.01;
 
             if (_arcSegment != null)
@@ -149,7 +163,7 @@ namespace ScreenToGif.Controls
 
         private Point ComputeCartesianCoordinate(double angle, double radius)
         {
-            //Convert to radians.
+            //Convert to radians
             var angleRad = (Math.PI / 180.0) * (angle - 90);
 
             var x = radius * Math.Cos(angleRad);

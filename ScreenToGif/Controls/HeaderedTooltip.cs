@@ -5,7 +5,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
-using System.Windows.Media;
 
 namespace ScreenToGif.Controls
 {
@@ -15,16 +14,20 @@ namespace ScreenToGif.Controls
     {
         #region Variables
 
-        public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(HeaderedTooltip), new FrameworkPropertyMetadata("Header"));
+        public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register("Header", typeof(string), typeof(HeaderedTooltip),
+            new FrameworkPropertyMetadata("Header"));
 
-        public static readonly DependencyProperty TextProperty = DependencyProperty.Register(nameof(Text), typeof(string), typeof(HeaderedTooltip), new FrameworkPropertyMetadata(""));
+        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(HeaderedTooltip),
+            new FrameworkPropertyMetadata(""));
 
-        public static readonly DependencyProperty TextAlignmentProperty = DependencyProperty.Register(nameof(TextAlignment), typeof(TextAlignment),
+        public static readonly DependencyProperty TextAlignmentProperty = DependencyProperty.Register("TextAlignment", typeof(TextAlignment),
             typeof(HeaderedTooltip), new FrameworkPropertyMetadata(TextAlignment.Left));
 
-        public static readonly DependencyProperty IconProperty = DependencyProperty.Register(nameof(Icon), typeof(Brush), typeof(HeaderedTooltip));
+        public static readonly DependencyProperty ImageProperty = DependencyProperty.Register("Image", typeof(UIElement),
+            typeof(HeaderedTooltip));
 
-        public static readonly DependencyProperty MaxSizeProperty = DependencyProperty.Register(nameof(MaxSize), typeof(double), typeof(HeaderedTooltip), new FrameworkPropertyMetadata(14.0));
+        public static readonly DependencyProperty MaxSizeProperty = DependencyProperty.Register("MaxSize", typeof(double), typeof(HeaderedTooltip),
+            new FrameworkPropertyMetadata(14.0));
 
         private Collection<Inline> _inlines = new Collection<Inline>();
         private TextBlock _inlinesPresenter = null;
@@ -64,13 +67,13 @@ namespace ScreenToGif.Controls
         }
 
         /// <summary>
-        /// The icon of the Tooltip.
+        /// The Image of the Tooltip.
         /// </summary>
-        [Description("The icon of the Tooltip.")]
-        public Brush Icon
+        [Description("The Image of the Tooltip.")]
+        public UIElement Image
         {
-            get => (Brush)GetValue(IconProperty);
-            set => SetCurrentValue(IconProperty, value);
+            get => (UIElement)GetValue(ImageProperty);
+            set => SetCurrentValue(ImageProperty, value);
         }
 
         /// <summary>
@@ -107,15 +110,17 @@ namespace ScreenToGif.Controls
 
             _inlinesPresenter = GetTemplateChild("PART_InlinesPresenter") as TextBlock;
 
-            if (_inlinesPresenter == null || !Inlines.Any())
-                return;
+            if (_inlinesPresenter != null && Inlines.Any())
+            {
+                Text = "";
 
-            Text = "";
+                var targetInlines = _inlinesPresenter.Inlines;
 
-            var targetInlines = _inlinesPresenter.Inlines;
-
-            foreach (var inline in Inlines) 
-                targetInlines.Add(inline);
+                foreach (var inline in Inlines)
+                {
+                    targetInlines.Add(inline);
+                }
+            }
         }
 
         public void Clear()
